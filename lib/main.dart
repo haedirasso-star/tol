@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // لدعم العربية
-import 'lib/ui/screens/subscription_gate.dart';
-import 'lib/core/app_theme.dart';
-import 'lib/services/notification_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // تهيئة نظام الإشعارات لاستقبال تنبيهات المباريات
-  NotificationService().initialize();
   
   // تثبيت اتجاه الشاشة ومنع التدوير العشوائي
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -21,14 +15,7 @@ void main() async {
     statusBarIconBrightness: Brightness.light,
   ));
 
-  runApp(
-    MultiProvider(
-      providers: [
-        // هنا سيتم إضافة MovieProvider و AuthProvider لاحقاً
-      ],
-      child: const TOLStreamingApp(),
-    ),
-  );
+  runApp(const TOLStreamingApp());
 }
 
 class TOLStreamingApp extends StatelessWidget {
@@ -40,8 +27,15 @@ class TOLStreamingApp extends StatelessWidget {
       title: 'TOL Stream',
       debugShowCheckedModeBanner: false,
       
-      // الهوية البصرية (الأسود والذهبي)
-      theme: AppTheme.darkTheme,
+      // الهوية البصرية (الأسود والذهبي) - تم دمجها هنا لحل خطأ AppTheme
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        primaryColor: const Color(0xFFFFD700),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFFD700),
+          secondary: Color(0xFFFFD700),
+        ),
+      ),
       
       // دعم اللغة العربية والاتجاه من اليمين لليسار (RTL)
       localizationsDelegates: const [
@@ -52,8 +46,89 @@ class TOLStreamingApp extends StatelessWidget {
       supportedLocales: const [Locale('ar', 'IQ')],
       locale: const Locale('ar', 'IQ'),
 
-      // نقطة الانطلاق: بوابة الاشتراك الإجباري في قناتك t.me/O_2828
+      // نقطة الانطلاق: بوابة الاشتراك الإجباري
       home: const SubscriptionGate(), 
+    );
+  }
+}
+
+class SubscriptionGate extends StatelessWidget {
+  const SubscriptionGate({super.key});
+
+  // دالة فتح الرابط
+  Future<void> _launchTelegram() async {
+    final Uri url = Uri.parse('https://t.me/O_2828');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A1A), Colors.black],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // شعار ذهبي
+            const Icon(Icons.verified_user, size: 100, color: Color(0xFFFFD700)),
+            const SizedBox(height: 30),
+            const Text(
+              "تطبيق TOL",
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFFD700),
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                "لمتابعة البث المباشر والحصول على كافة الميزات، يجب الاشتراك في قناة المطور أولاً.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
+              ),
+            ),
+            const SizedBox(height: 40),
+            // زر الاشتراك
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFD700),
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                elevation: 10,
+              ),
+              onPressed: _launchTelegram,
+              icon: const Icon(Icons.send_rounded),
+              label: const Text(
+                "اشترك الآن لتفعيل التطبيق",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextButton(
+              onPressed: () {
+                // يمكن إضافة كود التحقق هنا لاحقاً
+              },
+              child: const Text(
+                "تم الاشتراك؟ اضغط هنا للدخول",
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
