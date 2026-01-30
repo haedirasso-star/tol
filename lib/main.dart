@@ -46,14 +46,13 @@ class TOLStreamingApp extends StatelessWidget {
       supportedLocales: const [Locale('ar', 'IQ')],
       locale: const Locale('ar', 'IQ'),
 
-      // تم حذف const من هنا أيضاً لضمان القبول
-      home: SubscriptionGate(), 
+      home: const SubscriptionGate(), 
     );
   }
 }
 
 class SubscriptionGate extends StatelessWidget {
-  SubscriptionGate({super.key});
+  const SubscriptionGate({super.key});
 
   Future<void> _launchTelegram() async {
     final Uri url = Uri.parse('https://t.me/O_2828');
@@ -87,7 +86,7 @@ class SubscriptionGate extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                "لمتابعة البث المباشر، يجب الاشتراك في قناة المطور أولاً.",
+                "لمتابعة البث المباشر والحصول على كافة الميزات، يجب الاشتراك في قناة المطور أولاً.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
               ),
