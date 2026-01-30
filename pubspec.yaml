@@ -1,7 +1,19 @@
+name: tol_app
+description: TOL Mobile Application
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
 dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^6.1.11
-  firebase_core: ^2.24.2  # للمهام الأساسية
-  firebase_messaging: ^14.7.10 # للإشعارات والرسائل
-  google_mobile_ads: ^3.0.0 # للإعلانات والربح
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
