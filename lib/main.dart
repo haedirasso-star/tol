@@ -6,10 +6,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // تثبيت اتجاه الشاشة ومنع التدوير العشوائي
+  // تثبيت اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   
-  // إعداد شريط الحالة (سينمائي)
+  // إعداد شريط الحالة
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -27,7 +27,6 @@ class TOLStreamingApp extends StatelessWidget {
       title: 'TOL Stream',
       debugShowCheckedModeBanner: false,
       
-      // الهوية البصرية (الأسود والذهبي) - تم دمجها هنا لحل خطأ AppTheme
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
         primaryColor: const Color(0xFFFFD700),
@@ -37,8 +36,8 @@ class TOLStreamingApp extends StatelessWidget {
         ),
       ),
       
-      // دعم اللغة العربية والاتجاه من اليمين لليسار (RTL)
-      localizationsDelegates: const [
+      // التصحيح هنا: حذفنا كلمة const من القائمة لأن الـ delegates ليست ثابتة
+      localizationsDelegates: [
         GlobalCupertinoLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -46,7 +45,6 @@ class TOLStreamingApp extends StatelessWidget {
       supportedLocales: const [Locale('ar', 'IQ')],
       locale: const Locale('ar', 'IQ'),
 
-      // نقطة الانطلاق: بوابة الاشتراك الإجباري
       home: const SubscriptionGate(), 
     );
   }
@@ -55,11 +53,10 @@ class TOLStreamingApp extends StatelessWidget {
 class SubscriptionGate extends StatelessWidget {
   const SubscriptionGate({super.key});
 
-  // دالة فتح الرابط
   Future<void> _launchTelegram() async {
     final Uri url = Uri.parse('https://t.me/O_2828');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url');
+       debugPrint("Could not launch Telegram");
     }
   }
 
@@ -78,7 +75,6 @@ class SubscriptionGate extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // شعار ذهبي
             const Icon(Icons.verified_user, size: 100, color: Color(0xFFFFD700)),
             const SizedBox(height: 30),
             const Text(
@@ -100,7 +96,6 @@ class SubscriptionGate extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            // زر الاشتراك
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFD700),
@@ -118,9 +113,7 @@ class SubscriptionGate extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                // يمكن إضافة كود التحقق هنا لاحقاً
-              },
+              onPressed: () {},
               child: const Text(
                 "تم الاشتراك؟ اضغط هنا للدخول",
                 style: TextStyle(color: Colors.white54),
