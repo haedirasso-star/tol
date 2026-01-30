@@ -11,8 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  # هذه المكتبة ضرورية لفتح رابط قناتك في تليجرام
+  # لفتح الروابط الخارجية مثل تليجرام
   url_launcher: ^6.1.11
+  # لتشغيل الفيديو والبث المباشر بدقة عالية
+  video_player: ^2.8.1
+  # لإضافة أزرار التحكم الاحترافية للفيديو
+  chewie: ^1.7.1
+  # لتحميل الصور والبوسترات من الإنترنت بسرعة
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:
