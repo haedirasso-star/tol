@@ -9,7 +9,7 @@ void main() async {
   // تثبيت اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   
-  // إعداد شريط الحالة
+  // جعل شريط الحالة سينمائي
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -27,6 +27,7 @@ class TOLStreamingApp extends StatelessWidget {
       title: 'TOL Stream',
       debugShowCheckedModeBanner: false,
       
+      // تعريف الثيم مباشرة هنا لحل خطأ AppTheme
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
         primaryColor: const Color(0xFFFFD700),
@@ -36,7 +37,7 @@ class TOLStreamingApp extends StatelessWidget {
         ),
       ),
       
-      // التصحيح هنا: حذفنا كلمة const من القائمة لأن الـ delegates ليست ثابتة
+      // تم حذف كلمة const من هنا لحل خطأ "Not a constant expression"
       localizationsDelegates: [
         GlobalCupertinoLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -45,13 +46,14 @@ class TOLStreamingApp extends StatelessWidget {
       supportedLocales: const [Locale('ar', 'IQ')],
       locale: const Locale('ar', 'IQ'),
 
-      home: const SubscriptionGate(), 
+      // تم حذف const من هنا أيضاً لضمان القبول
+      home: SubscriptionGate(), 
     );
   }
 }
 
 class SubscriptionGate extends StatelessWidget {
-  const SubscriptionGate({super.key});
+  SubscriptionGate({super.key});
 
   Future<void> _launchTelegram() async {
     final Uri url = Uri.parse('https://t.me/O_2828');
@@ -79,18 +81,13 @@ class SubscriptionGate extends StatelessWidget {
             const SizedBox(height: 30),
             const Text(
               "تطبيق TOL",
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFFFD700),
-                letterSpacing: 2,
-              ),
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFFFFD700)),
             ),
             const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                "لمتابعة البث المباشر والحصول على كافة الميزات، يجب الاشتراك في قناة المطور أولاً.",
+                "لمتابعة البث المباشر، يجب الاشتراك في قناة المطور أولاً.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
               ),
@@ -102,22 +99,15 @@ class SubscriptionGate extends StatelessWidget {
                 foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                elevation: 10,
               ),
               onPressed: _launchTelegram,
               icon: const Icon(Icons.send_rounded),
-              label: const Text(
-                "اشترك الآن لتفعيل التطبيق",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              label: const Text("اشترك الآن لتفعيل التطبيق", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {},
-              child: const Text(
-                "تم الاشتراك؟ اضغط هنا للدخول",
-                style: TextStyle(color: Colors.white54),
-              ),
+              child: const Text("تم الاشتراك؟ اضغط هنا للدخول", style: TextStyle(color: Colors.white54)),
             ),
           ],
         ),
