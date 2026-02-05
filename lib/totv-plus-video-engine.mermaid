@@ -1,0 +1,109 @@
+graph TB
+    subgraph "ExoPlayer Video Engine - TOTV+"
+        EP[ExoPlayer Core Engine]
+        
+        subgraph "Input Sources"
+            I1[HLS Streams<br/>.m3u8]
+            I2[DASH Streams<br/>.mpd]
+            I3[MP4 Files<br/>Direct URLs]
+            I4[Offline Downloads<br/>Encrypted Local]
+        end
+        
+        subgraph "Media Processing Pipeline"
+            MP1[Media Source Factory<br/>URL Validation]
+            MP2[Data Source Manager<br/>Network + Cache]
+            MP3[Load Control<br/>Buffer Management]
+            MP4[Track Selector<br/>Quality Picker]
+        end
+        
+        subgraph "Adaptive Streaming Logic"
+            AS1[Bandwidth Estimator<br/>Speed Detection]
+            AS2[Quality Ladder<br/>144p - 1080p - 4K]
+            AS3[Seamless Switching<br/>No Buffering]
+            AS4[Smart Prefetch<br/>Next Episode]
+        end
+        
+        subgraph "Rendering Layer"
+            R1[Video Renderer<br/>Hardware Acceleration]
+            R2[Audio Renderer<br/>Multi-channel Support]
+            R3[Subtitle Renderer<br/>SRT/VTT/ASS]
+            R4[Custom Overlays<br/>Watermark + UI]
+        end
+        
+        subgraph "Playback Controls"
+            PC1[Play/Pause<br/>Seek Controls]
+            PC2[Speed Control<br/>0.5x - 2x]
+            PC3[Picture-in-Picture<br/>Background Play]
+            PC4[Chromecast<br/>AirPlay Support]
+        end
+        
+        subgraph "Analytics & Monitoring"
+            A1[Playback Events<br/>Play/Pause/Seek]
+            A2[Quality Changes<br/>Auto/Manual]
+            A3[Error Tracking<br/>Buffering Issues]
+            A4[Watch Duration<br/>Progress Sync]
+        end
+    end
+    
+    I1 --> MP1
+    I2 --> MP1
+    I3 --> MP1
+    I4 --> MP1
+    
+    MP1 --> MP2
+    MP2 --> MP3
+    MP3 --> MP4
+    
+    MP4 --> AS1
+    AS1 --> AS2
+    AS2 --> AS3
+    AS3 --> AS4
+    
+    MP4 --> R1
+    MP4 --> R2
+    MP4 --> R3
+    R1 --> R4
+    R2 --> R4
+    R3 --> R4
+    
+    R4 --> PC1
+    R4 --> PC2
+    R4 --> PC3
+    R4 --> PC4
+    
+    EP --> A1
+    EP --> A2
+    EP --> A3
+    EP --> A4
+    
+    style EP fill:#00CED1,stroke:#008B8B,stroke-width:4px,color:#fff
+    
+    style I1 fill:#4169E1,stroke:#1E90FF,stroke-width:2px,color:#fff
+    style I2 fill:#4169E1,stroke:#1E90FF,stroke-width:2px,color:#fff
+    style I3 fill:#4169E1,stroke:#1E90FF,stroke-width:2px,color:#fff
+    style I4 fill:#4169E1,stroke:#1E90FF,stroke-width:2px,color:#fff
+    
+    style MP1 fill:#32CD32,stroke:#228B22,stroke-width:2px,color:#fff
+    style MP2 fill:#32CD32,stroke:#228B22,stroke-width:2px,color:#fff
+    style MP3 fill:#32CD32,stroke:#228B22,stroke-width:2px,color:#fff
+    style MP4 fill:#32CD32,stroke:#228B22,stroke-width:2px,color:#fff
+    
+    style AS1 fill:#FF6B00,stroke:#FF4500,stroke-width:2px,color:#fff
+    style AS2 fill:#FF6B00,stroke:#FF4500,stroke-width:2px,color:#fff
+    style AS3 fill:#FF6B00,stroke:#FF4500,stroke-width:2px,color:#fff
+    style AS4 fill:#FF6B00,stroke:#FF4500,stroke-width:2px,color:#fff
+    
+    style R1 fill:#9370DB,stroke:#8A2BE2,stroke-width:2px,color:#fff
+    style R2 fill:#9370DB,stroke:#8A2BE2,stroke-width:2px,color:#fff
+    style R3 fill:#9370DB,stroke:#8A2BE2,stroke-width:2px,color:#fff
+    style R4 fill:#9370DB,stroke:#8A2BE2,stroke-width:2px,color:#fff
+    
+    style PC1 fill:#FFD700,stroke:#FFA500,stroke-width:2px,color:#000
+    style PC2 fill:#FFD700,stroke:#FFA500,stroke-width:2px,color:#000
+    style PC3 fill:#FFD700,stroke:#FFA500,stroke-width:2px,color:#000
+    style PC4 fill:#FFD700,stroke:#FFA500,stroke-width:2px,color:#000
+    
+    style A1 fill:#dc143c,stroke:#8b0000,stroke-width:2px,color:#fff
+    style A2 fill:#dc143c,stroke:#8b0000,stroke-width:2px,color:#fff
+    style A3 fill:#dc143c,stroke:#8b0000,stroke-width:2px,color:#fff
+    style A4 fill:#dc143c,stroke:#8b0000,stroke-width:2px,color:#fff

@@ -1,0 +1,71 @@
+sequenceDiagram
+    participant User as 👤 User
+    participant App as 📱 TOTV+ App
+    participant Auth as 🔐 Firebase Auth
+    participant Remote as ☁️ Remote Config
+    participant Firestore as 🗄️ Firestore DB
+    participant CDN as 🌐 CDN Servers
+    participant Player as ▶️ ExoPlayer
+    participant GeoIP as 🌍 GeoIP Service
+    
+    Note over User,GeoIP: App Launch & Authentication Flow
+    
+    User->>App: Open TOTV+ App
+    App->>App: Check Force Update
+    App->>GeoIP: Detect User Location
+    GeoIP-->>App: Return Country + Language
+    App->>Auth: Check Authentication
+    
+    alt User Not Logged In
+        App->>User: Show Login Screen
+        User->>Auth: Login Credentials
+        Auth-->>App: JWT Token + User Data
+    else User Already Logged In
+        Auth-->>App: Valid Session Token
+    end
+    
+    Note over App,Remote: Content Loading Flow
+    
+    App->>Remote: Fetch Dynamic Config<br/>(Encrypted JSON)
+    Remote-->>App: Return Content Structure<br/>{movies, series, trending}
+    App->>App: Decrypt AES-256 Config
+    App->>Firestore: Fetch User Watchlist
+    Firestore-->>App: Personal Data
+    
+    Note over User,Player: Content Playback Flow
+    
+    User->>App: Select Movie/Series
+    App->>App: Apply SSL Pinning
+    App->>CDN: Request HLS Manifest<br/>(.m3u8 file)
+    CDN-->>App: Return Streaming URL
+    
+    App->>Player: Initialize ExoPlayer
+    Player->>Player: Detect Network Speed
+    Player->>CDN: Fetch Video Segments<br/>(Auto Quality)
+    CDN-->>Player: Stream Video Chunks
+    
+    Player->>App: Enable FLAG_SECURE<br/>(Prevent Recording)
+    Player->>User: Display Video Content
+    
+    Note over User,Firestore: Watch History Tracking
+    
+    Player->>App: Update Watch Progress
+    App->>Firestore: Save Progress<br/>(timestamp, duration)
+    Firestore-->>App: Confirmation
+    
+    Note over User,App: Offline Download Flow
+    
+    User->>App: Request Download
+    App->>CDN: Download Encrypted Segments
+    CDN-->>App: Video Files
+    App->>App: Store in Encrypted Storage
+    App-->>User: Download Complete
+    
+    style User fill:#4169E1,stroke:#1E90FF,color:#fff
+    style App fill:#FF6B00,stroke:#FF4500,color:#fff
+    style Auth fill:#32CD32,stroke:#228B22,color:#fff
+    style Remote fill:#FFD700,stroke:#FFA500,color:#000
+    style Firestore fill:#FF69B4,stroke:#FF1493,color:#fff
+    style CDN fill:#00CED1,stroke:#008B8B,color:#fff
+    style Player fill:#9370DB,stroke:#8A2BE2,color:#fff
+    style GeoIP fill:#20B2AA,stroke:#008080,color:#fff
