@@ -1,0 +1,36 @@
+workflows:
+  android-workflow:
+    name: Shof TV Android Build
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Reconstruct Android Project
+        script: | 
+          # حذف مجلد الأندرويد القديم المليء بالأخطاء
+          rm -rf android
+          # إجبار فلاتر على إنشاء ملفات أندرويد متوافقة 100% مع الإصدار الحالي
+          flutter create . --platforms=android
+          # إضافة صلاحية الإنترنت لملف المانيفست الجديد
+          sed -i '' '/<application/i \
+          <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
+      - name: Get Flutter packages
+        script: | 
+          flutter pub get
+      - name: Build Android APK
+        script: | 
+          flutter build apk --release --no-tree-shake-icons
+    artifacts:
+      - build/app/outputs/flutter-apk/**/app-release.apk
+    publishing:
+      email:
+        recipients:
+          - haedirasso@gmail.com
