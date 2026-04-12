@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       final name = item['name']?.toString() ?? '';
       final icon = item['stream_icon']?.toString() ?? item['cover']?.toString() ?? '';
       quickHeroes.add(_HeroItem(
-        item: widget.item, isTv: isTv,
+        item: item, isTv: isTv,
         backdrop: icon, poster: icon,
         title: name, overview: '', rating: '', year: '',
         cast: '', director: '', needsSub: false,
@@ -184,7 +184,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         final trailerKey = results2[1] as String;
         final year = tmdb['year'] ?? '';
         return _HeroItem(
-          item: widget.item, isTv: isTv,
+          item: item, isTv: isTv,
           backdrop: tmdb['backdrop']?.isNotEmpty == true ? tmdb['backdrop']! : icon,
           poster:   tmdb['poster_sm']?.isNotEmpty == true ? tmdb['poster_sm']! : icon,
           title:    tmdb['title']?.isNotEmpty == true ? tmdb['title']! : name,
@@ -372,7 +372,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Future<List<String>> _resolveUrls(dynamic item, String type) async {
     final id = item['stream_id']?.toString() ?? '';
     if (id.isNotEmpty) {
-      if (widget.type == 'live') return Api.liveUrls(item);
+      if (type == 'live') return Api.liveUrls(item);
       if (type == 'movie') return Api.movieUrls(item);
     }
     // البحث عن ID من السيرفر باسم المحتوى
@@ -386,7 +386,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       );
       if (found != null) {
         if (type == 'movie') return Api.movieUrls(found);
-        if (widget.type == 'live') return Api.liveUrls(found);
+        if (type == 'live') return Api.liveUrls(found);
       }
     } catch (_) {}
     return [];
@@ -2112,7 +2112,7 @@ class _ContentPageState extends State<ContentPage> with AutomaticKeepAliveClient
       final tmdb  = await TMDB.search(name, isTv: isTv);
       final year  = tmdb['year'] ?? '';
       heroes.add(_HeroItem(
-        item: widget.item, isTv: isTv,
+        item: item, isTv: isTv,
         backdrop: tmdb['backdrop']?.isNotEmpty == true ? tmdb['backdrop']! : icon,
         poster:   tmdb['poster_sm']?.isNotEmpty == true ? tmdb['poster_sm']! : icon,
         title:    tmdb['title'] ?? name,
