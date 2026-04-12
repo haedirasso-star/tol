@@ -693,7 +693,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
           Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(children: [
               GestureDetector(onTap: () {
-                if (_step > 0) setState(() { _step--; _method = null; })
+                if (_step > 0) setState(() { _step--; _method = null; });
                 else Navigator.pop(context);
               },
                 child: const Icon(Icons.arrow_back_ios_rounded, size: 18, color: Colors.white54)),
