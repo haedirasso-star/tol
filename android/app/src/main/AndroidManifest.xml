@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+  <!-- ══ صلاحيات الشبكة ═══════════════════════════════════ -->
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+  <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+  <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+
+  <!-- ══ صلاحيات النظام ═══════════════════════════════════ -->
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.VIBRATE"/>
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+  <!-- ══ الإشعارات — Android 13+ يحتاج إذن صريح ═════════ -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+  <!-- ══ التخزين — Android 13+ استخدم READ_MEDIA ═════════ -->
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+      android:maxSdkVersion="32"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+      android:maxSdkVersion="29"/>
+  <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"
+      tools:targetApi="33"/>
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+      tools:targetApi="33"/>
+
+  <!-- ══ ميزات الجهاز (كلها اختيارية) ══════════════════════ -->
+  <uses-feature android:name="android.software.leanback"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.touchscreen"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.touchscreen.multitouch"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.microphone"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.camera"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.camera.autofocus"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.wifi"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.location"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.location.gps"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.sensor.accelerometer"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.bluetooth"
+      android:required="false"/>
+  <uses-feature android:name="android.hardware.telephony"
+      android:required="false"/>
+
+  <application
+      android:label="TOTV+"
+      android:name="${applicationName}"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:banner="@drawable/ic_banner"
+      android:supportsRtl="true"
+      android:theme="@style/LaunchTheme"
+      android:hardwareAccelerated="true"
+      android:usesCleartextTraffic="true"
+      android:networkSecurityConfig="@xml/network_security_config"
+      android:allowBackup="false"
+      android:enableOnBackInvokedCallback="true"
+      android:localeConfig="@xml/locales_config"
+      tools:targetApi="33">
+
+    <!-- Flutter Embedding v2 -->
+    <meta-data android:name="flutterEmbedding" android:value="2"/>
+
+    <!-- ★ Android 14+: لتجنب تجميد العمليات في الخلفية -->
+    <meta-data
+        android:name="android.app.PROPERTY_COMPAT_ALLOW_RESTRICTED_ASSOCIATIONS"
+        android:value="false"/>
+
+    <!-- AdMob -->
+    <property
+        android:name="android.adservices.AD_SERVICES_CONFIG"
+        android:resource="@xml/gma_ad_services_config"
+        tools:replace="android:resource"/>
+    <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-6787200447252705~6903397497"/>
+    <meta-data
+        android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+        android:value="true"/>
+    <meta-data
+        android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
+        android:value="true"/>
+
+    <!-- FlutterDownloader Provider -->
+    <provider
+        android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"
+        android:authorities="${applicationId}.flutter_downloader.provider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+      <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/provider_paths"/>
+    </provider>
+
+    <!-- ══ MainActivity ════════════════════════════════════ -->
+    <activity
+        android:name=".MainActivity"
+        android:exported="true"
+        android:launchMode="singleTop"
+        android:taskAffinity=""
+        android:theme="@style/LaunchTheme"
+        android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode|navigation"
+        android:hardwareAccelerated="true"
+        android:windowSoftInputMode="adjustResize"
+        android:screenOrientation="sensor"
+        android:supportsPictureInPicture="true"
+        android:resizeableActivity="true"
+        android:enableOnBackInvokedCallback="true">
+
+      <!-- هاتف -->
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+
+      <!-- Android TV -->
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+      </intent-filter>
+
+      <!-- Deep Link -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="totv" android:host="open"/>
+      </intent-filter>
+
+      <meta-data
+          android:name="io.flutter.embedding.android.NormalTheme"
+          android:resource="@style/NormalTheme"/>
+    </activity>
+
+    <!-- FlutterDownloader Service -->
+    <service
+        android:name="vn.hunghd.flutterdownloader.DownloadTaskService"
+        android:permission="android.permission.BIND_JOB_SERVICE"
+        android:exported="false"/>
+
+    <!-- Firebase Messaging -->
+    <service
+        android:name="com.google.firebase.messaging.FirebaseMessagingService"
+        android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+      </intent-filter>
+    </service>
+
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@drawable/ic_notification"/>
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_color"
+        android:resource="@color/notification_color"/>
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="totv_notifications"/>
+
+  </application>
+</manifest>
