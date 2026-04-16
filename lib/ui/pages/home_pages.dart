@@ -200,6 +200,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   }
 
   // المحتوى الجديد (2025/2026) يحتاج اشتراك
+  bool _isNew(String year) {
+    if (SubCompat.isPremium) return false;
+    if (year.isEmpty) return false;
+    final y = int.tryParse(year) ?? 0;
+    return y >= 2025;
+  }
 
   // ── Skeleton Loading — بدلاً من الشاشة السوداء ────────
   Widget _buildSkeleton() {
