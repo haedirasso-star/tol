@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ★ مطلوب لـ adaptive icon في Android 8+ -->
+    <color name="ic_launcher_background">#000000</color>
+
+    <!-- ألوان التطبيق -->
+    <color name="notification_color">#FFD740</color>
+    <color name="primary_color">#FFD740</color>
+    <color name="background_color">#000000</color>
+</resources>
