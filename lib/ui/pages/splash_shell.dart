@@ -1,11 +1,9 @@
 part of '../../main.dart';
 
 // ════════════════════════════════════════════════════════════════
-//  SPLASH — شاشة البداية
-// ════════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════════
-//  SPLASH v3 — Ultra-Fast (< 800ms to Shell)
-//  Strategy: show UI at frame 1, all network = background
+//  SPLASH v4 — Ultra-Fast + Default Server Preload
+//  Strategy: show UI at frame 1, load default server content
+//  in background so Shell has data ready on arrival.
 // ════════════════════════════════════════════════════════════════
 class Splash extends StatefulWidget {
   const Splash();
@@ -23,15 +21,31 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
 
-    // ★ Animation — 600ms (was 1200ms)
-    _ctrl  = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))
       ..forward();
     _fade  = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _scale = Tween<double>(begin: 0.9, end: 1.0)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
 
-    // ★ Launch after 800ms — show UI instantly, don't wait for network
+    // ★ بدء تحميل محتوى الخادم الافتراضي فوراً في الخلفية
+    //   حتى يصل الزائر للـ Shell وهناك بيانات جاهزة
+    unawaited(_preloadDefaultContent());
+
     Future.delayed(const Duration(milliseconds: 800), _go);
+  }
+
+  /// يحمّل محتوى الخادم الافتراضي للزوار وغير المشتركين
+  Future<void> _preloadDefaultContent() async {
+    try {
+      if (!AppState.isLoaded && RC.hasDefaultServer) {
+        await AppState.loadAll().timeout(
+          const Duration(seconds: 20),
+          onTimeout: () {},
+        );
+      }
+    } catch (e) {
+      debugPrint('[splash] preloadDefaultContent: $e');
+    }
   }
 
   Future<void> _go() async {
@@ -44,16 +58,13 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
       return;
     }
 
-    // ★ FAST PATH: go to shell immediately, load everything in background
     final user = AuthService.currentUser;
     if (user != null) {
-      // Fire-and-forget — don't await anything
       AuthService.startAdminListener(user.uid);
       Future(() => UserDataWatcher.startListening(user.uid));
       UserDataWatcher.setOnBanned(() {
         if (mounted) Navigator.of(context).pushReplacement(_route(const BannedPage()));
       });
-      // Background checks — never block navigation
       unawaited(_backgroundChecks(user.uid));
     }
 
@@ -70,11 +81,12 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
           .timeout(const Duration(seconds: 3), onTimeout: () => UserStatus.active)
           .catchError((_) => UserStatus.active);
       if (status == UserStatus.banned && mounted) {
-        // Navigate to banned page from anywhere in the app
         Navigator.of(context).pushAndRemoveUntil(
           _route(const BannedPage()), (_) => false);
       }
-    } catch (e) { debugPrint('[splash_shell] $e'); }
+    } catch (e) {
+      debugPrint('[splash_shell] $e');
+    }
   }
 
   static PageRouteBuilder _route(Widget page) => PageRouteBuilder(
@@ -93,7 +105,6 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
       opacity: _fade,
       child: ScaleTransition(scale: _scale,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // ★ Logo
           ShaderMask(
             shaderCallback: (b) => const LinearGradient(
               colors: [C.gold, C.imdb, C.goldDim],
@@ -109,7 +120,6 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
               fontSize: FS.md, color: C.textDim, fontWeight: FontWeight.w400,
               letterSpacing: 2)),
           const SizedBox(height: 60),
-          // ★ Thin loader
           SizedBox(width: 32, height: 32,
             child: CircularProgressIndicator(
               color: C.gold.withOpacity(0.5),
@@ -261,11 +271,9 @@ class LoginGateSheet extends StatelessWidget {
           Container(width: 40, height: 3,
               decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(R.tiny))),
           const SizedBox(height: 24),
-          // أيقونة
           Container(width: 72, height: 72,
             decoration: BoxDecoration(shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [C.goldBg, C.goldBg]),
+              gradient: const LinearGradient(colors: [C.goldBg, C.goldBg]),
               border: Border.all(color: C.gold.withOpacity(0.5), width: 1.5),
               boxShadow: [BoxShadow(color: C.gold.withOpacity(0.2), blurRadius: FS.xl)]),
             child: Center(child: ShaderMask(
@@ -275,7 +283,6 @@ class LoginGateSheet extends StatelessWidget {
           Text('سجّل الدخول للمشاهدة',
               style: T.cairo(s: FS.xl, w: FontWeight.w900), textAlign: TextAlign.center),
           const SizedBox(height: 8),
-          // بانر ساعة مجانية
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
@@ -295,13 +302,11 @@ class LoginGateSheet extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(message!, style: T.body(c: CC.textSec), textAlign: TextAlign.center,
                   textDirection: TextDirection.rtl)),
-          // مميزات الحساب المجاني
-          _feature(Icons.live_tv_rounded,     'تصفح جميع الأفلام والمسلسلات والقنوات'),
-          _feature(Icons.hd_rounded,          'جودة عالية — HD وأعلى'),
-          _feature(Icons.timer_rounded,        'ساعة مشاهدة مجانية يومياً بعد التسجيل'),
-          _feature(Icons.lock_open_rounded,   'بدون بطاقة ائتمان'),
+          _feature(Icons.live_tv_rounded,   'تصفح جميع الأفلام والمسلسلات والقنوات'),
+          _feature(Icons.hd_rounded,        'جودة عالية — HD وأعلى'),
+          _feature(Icons.timer_rounded,     'ساعة مشاهدة مجانية يومياً بعد التسجيل'),
+          _feature(Icons.lock_open_rounded, 'بدون بطاقة ائتمان'),
           const SizedBox(height: 24),
-          // زر تسجيل الدخول
           GestureDetector(
             onTap: () {
               Navigator.pop(context);
@@ -325,6 +330,32 @@ class LoginGateSheet extends StatelessWidget {
               ])),
           ),
           const SizedBox(height: 10),
+          // ★ زر "كيف أشترك؟" للزوار
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const HowToSubscribePage(),
+                transitionDuration: const Duration(milliseconds: 350),
+                transitionsBuilder: (_, a, __, c) =>
+                    SlideTransition(position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)), child: c),
+              ));
+            },
+            child: Container(
+              width: double.infinity, height: 44,
+              decoration: BoxDecoration(
+                color: C.surface,
+                borderRadius: BorderRadius.circular(R.md),
+                border: Border.all(color: Colors.white.withOpacity(0.1))),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Icon(Icons.help_outline_rounded, color: C.gold, size: 18),
+                const SizedBox(width: 8),
+                Text('كيف أشترك؟', style: T.cairo(s: FS.md, c: C.gold, w: FontWeight.w700)),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 10),
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Text('تصفح بدون تسجيل', style: T.caption(c: C.textDim))),
@@ -344,7 +375,7 @@ class LoginGateSheet extends StatelessWidget {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  FREE HOUR EXPIRED SHEET — منتهي الوقت المجاني
+//  FREE HOUR EXPIRED SHEET
 // ════════════════════════════════════════════════════════════════
 class FreeExpiredSheet extends StatelessWidget {
   const FreeExpiredSheet();
@@ -378,12 +409,11 @@ class FreeExpiredSheet extends StatelessWidget {
           Text('اشترك للاستمتاع بمشاهدة غير محدودة',
               style: T.body(c: CC.textSec), textAlign: TextAlign.center),
           const SizedBox(height: 24),
-          _perk(Icons.all_inclusive_rounded,   'مشاهدة غير محدودة'),
-          _perk(Icons.hd_rounded,              'جودة Full HD وأعلى'),
-          _perk(Icons.block_rounded,           'بدون إعلانات'),
-          _perk(Icons.speed_rounded,           'سرعة وجودة فائقة'),
+          _perk(Icons.all_inclusive_rounded, 'مشاهدة غير محدودة'),
+          _perk(Icons.hd_rounded,            'جودة Full HD وأعلى'),
+          _perk(Icons.block_rounded,         'بدون إعلانات'),
+          _perk(Icons.speed_rounded,         'سرعة وجودة فائقة'),
           const SizedBox(height: 24),
-          // زر الاشتراك
           GestureDetector(
             onTap: () {
               Navigator.pop(context);
@@ -407,7 +437,6 @@ class FreeExpiredSheet extends StatelessWidget {
               ])),
           ),
           const SizedBox(height: 12),
-          // ── زر شراء اشتراك جديد مباشر ──
           GestureDetector(
             onTap: () {
               Navigator.pop(context);
@@ -426,6 +455,21 @@ class FreeExpiredSheet extends StatelessWidget {
                 Text('شراء اشتراك جديد', style: T.cairo(s: FS.md, c: C.gold, w: FontWeight.w700)),
               ]),
             ),
+          ),
+          const SizedBox(height: 8),
+          // ★ زر "كيف أشترك؟"
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const HowToSubscribePage(),
+                transitionDuration: const Duration(milliseconds: 350),
+                transitionsBuilder: (_, a, __, c) =>
+                    SlideTransition(position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)), child: c),
+              ));
+            },
+            child: Text('كيف أشترك؟ — اعرف الخطوات', style: T.caption(c: C.gold)),
           ),
           const SizedBox(height: 8),
           if (RC.whatsapp.isNotEmpty)
@@ -450,7 +494,299 @@ class FreeExpiredSheet extends StatelessWidget {
   );
 }
 
-// Helper: show login gate
+// ════════════════════════════════════════════════════════════════
+//  HOW TO SUBSCRIBE PAGE — صفحة تعليمات الاشتراك
+// ════════════════════════════════════════════════════════════════
+class HowToSubscribePage extends StatelessWidget {
+  const HowToSubscribePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: C.bg,
+      appBar: AppBar(
+        backgroundColor: C.bg,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text('كيف تشترك في TOTV+؟',
+            style: T.cairo(s: FS.lg, w: FontWeight.w700)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+
+          // ── بانر تعريفي ──────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: C.goldBg,
+              borderRadius: BorderRadius.circular(T.rLg),
+              border: Border.all(color: C.gold.withOpacity(0.35))),
+            child: Column(children: [
+              ShaderMask(
+                shaderCallback: (b) => const LinearGradient(
+                    colors: [C.gold, C.imdb, C.goldDim]).createShader(b),
+                blendMode: BlendMode.srcIn,
+                child: Text('TOTV+',
+                    style: GoogleFonts.cinzelDecorative(
+                        fontSize: 28, fontWeight: FontWeight.w900,
+                        color: C.textPri, letterSpacing: 6))),
+              const SizedBox(height: 8),
+              Text('آلاف القنوات · الأفلام · المسلسلات · البث المباشر',
+                  style: T.cairo(s: FS.sm, c: C.gold, w: FontWeight.w600),
+                  textAlign: TextAlign.center),
+            ]),
+          ),
+
+          const SizedBox(height: 28),
+          Text('خطوات الاشتراك',
+              style: T.cairo(s: FS.lg, w: FontWeight.w800),
+              textDirection: TextDirection.rtl),
+          const SizedBox(height: 16),
+
+          // ── الخطوات ──────────────────────────────────────────
+          _step(
+            num: '١',
+            title: 'اختر خطة الاشتراك',
+            desc: 'شهري: 5,000 د.ع  •  ربعي: 13,000 د.ع  •  سنوي: 45,000 د.ع',
+            icon: Icons.checklist_rounded,
+          ),
+          _step(
+            num: '٢',
+            title: 'ادفع عبر طريقتك المفضلة',
+            desc: 'FIB — سوبر كي — كي — أو عبر موقعنا الإلكتروني مباشرة.',
+            icon: Icons.account_balance_rounded,
+          ),
+          _step(
+            num: '٣',
+            title: 'أرسل بيانات الطلب',
+            desc: 'من داخل التطبيق أرسل اسمك ورقم هاتفك وطريقة الدفع. سيصل طلبك فوراً لفريق الدعم.',
+            icon: Icons.send_rounded,
+          ),
+          _step(
+            num: '٤',
+            title: 'انتظر التأكيد',
+            desc: 'يتواصل معك فريق الدعم خلال دقائق عبر واتساب ويرسل لك بيانات التفعيل.',
+            icon: Icons.mark_chat_read_rounded,
+          ),
+          _step(
+            num: '٥',
+            title: 'فعّل اشتراكك',
+            desc: 'أدخل اسم المستخدم وكلمة المرور التي أُرسلت إليك في صفحة "تفعيل الاشتراك"، واستمتع بالمحتوى.',
+            icon: Icons.verified_user_rounded,
+          ),
+
+          const SizedBox(height: 28),
+
+          // ── خطط الأسعار ──────────────────────────────────────
+          Text('خطط الأسعار',
+              style: T.cairo(s: FS.lg, w: FontWeight.w800),
+              textDirection: TextDirection.rtl),
+          const SizedBox(height: 12),
+          _planCard('شهري',    '5,000',  '/شهر',    'الأكثر شيوعاً', const Color(0xFFFFD740), false),
+          const SizedBox(height: 10),
+          _planCard('3 أشهر', '13,000', '/3 أشهر', 'وفّر 13%',      const Color(0xFF00D2FF), true),
+          const SizedBox(height: 10),
+          _planCard('سنوي',   '45,000', '/سنة',     'أفضل قيمة',     const Color(0xFFFF6B35), false),
+
+          const SizedBox(height: 32),
+
+          // ── أزرار الإجراء ────────────────────────────────────
+          GestureDetector(
+            onTap: () => Navigator.push(context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const SubscriptionPage(),
+                  transitionDuration: const Duration(milliseconds: 350),
+                  transitionsBuilder: (_, a, __, c) =>
+                      SlideTransition(
+                        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                            .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+                        child: c),
+                )),
+            child: Container(
+              width: double.infinity, height: 54,
+              decoration: BoxDecoration(
+                  gradient: C.playGrad,
+                  borderRadius: BorderRadius.circular(T.rMd),
+                  boxShadow: [BoxShadow(color: C.gold.withOpacity(0.35), blurRadius: FS.md, offset: const Offset(0, 4))]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Icon(Icons.workspace_premium_rounded, color: Colors.black, size: 22),
+                const SizedBox(width: 10),
+                Text('اشترك الآن', style: T.cairo(s: FS.lg, c: Colors.black, w: FontWeight.w900)),
+              ]),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          if (RC.whatsapp.isNotEmpty)
+            GestureDetector(
+              onTap: () => launchUrl(
+                Uri.parse('https://wa.me/${RC.whatsapp}?text=${Uri.encodeComponent("مرحباً، أريد الاشتراك في TOTV+")}'),
+                mode: LaunchMode.externalApplication),
+              child: Container(
+                width: double.infinity, height: 50,
+                decoration: BoxDecoration(
+                  color: C.whatsapp.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(T.rMd),
+                  border: Border.all(color: C.whatsapp.withOpacity(0.4))),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Icon(Icons.support_agent_rounded, color: C.whatsapp, size: 20),
+                  const SizedBox(width: 8),
+                  Text('تواصل مع الدعم عبر واتساب',
+                      style: T.cairo(s: FS.md, c: C.whatsapp, w: FontWeight.w700)),
+                ]),
+              ),
+            ),
+
+          const SizedBox(height: 10),
+
+          GestureDetector(
+            onTap: () => launchUrl(Uri.parse(RC.telegram), mode: LaunchMode.externalApplication),
+            child: Container(
+              width: double.infinity, height: 50,
+              decoration: BoxDecoration(
+                color: C.telegram.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(T.rMd),
+                border: Border.all(color: C.telegram.withOpacity(0.3))),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Icon(Icons.telegram, color: C.telegram, size: 20),
+                const SizedBox(width: 8),
+                Text('القناة الرسمية على تيليغرام',
+                    style: T.cairo(s: FS.md, c: C.telegram, w: FontWeight.w700)),
+              ]),
+            ),
+          ),
+
+        ]),
+      ),
+    );
+  }
+
+  Widget _step({required String num, required String title, required String desc, required IconData icon}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+          color: C.surface,
+          borderRadius: BorderRadius.circular(T.rMd),
+          border: Border.all(color: Colors.white.withOpacity(0.07))),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          width: 36, height: 36,
+          decoration: const BoxDecoration(shape: BoxShape.circle, gradient: C.playGrad),
+          child: Center(
+              child: Text(num, style: T.cairo(s: FS.md, c: Colors.black, w: FontWeight.w900)))),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: T.cairo(s: FS.md, w: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text(desc, style: T.cairo(s: FS.sm, c: CC.textSec), textDirection: TextDirection.rtl),
+        ])),
+        const SizedBox(width: 8),
+        Icon(icon, color: C.gold, size: 20),
+      ]),
+    );
+  }
+
+  Widget _planCard(String title, String price, String period, String badge, Color accent, bool featured) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: featured ? accent.withOpacity(0.07) : C.surface,
+        borderRadius: BorderRadius.circular(T.rMd),
+        border: Border.all(
+            color: accent.withOpacity(featured ? 0.5 : 0.2),
+            width: featured ? 1.5 : 1)),
+      child: Row(children: [
+        Container(
+          width: 52, height: 52,
+          decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(T.rSm)),
+          child: Center(child: Text(title,
+              style: T.cairo(s: FS.sm, w: FontWeight.w900, c: accent),
+              textAlign: TextAlign.center))),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Text('اشتراك $title', style: T.cairo(s: FS.md, w: FontWeight.w700)),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                  color: accent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(T.rSm),
+                  border: Border.all(color: accent.withOpacity(0.3))),
+              child: Text(badge,
+                  style: TextStyle(fontSize: 9, color: accent, fontWeight: FontWeight.w700,
+                      fontFamily: GoogleFonts.montserrat().fontFamily))),
+          ]),
+          const SizedBox(height: 2),
+          Text('جهازان • جميع الأجهزة', style: T.caption(c: CC.textSec)),
+        ])),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(price,
+              style: TextStyle(
+                  fontSize: FS.lg, fontWeight: FontWeight.w900, color: C.textPri,
+                  fontFamily: GoogleFonts.montserrat().fontFamily)),
+          Text('د.ع$period',
+              style: TextStyle(
+                  fontSize: FS.xs, color: accent.withOpacity(0.8),
+                  fontFamily: GoogleFonts.montserrat().fontFamily)),
+        ]),
+      ]),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SUBSCRIBE BANNER — بانر صغير يظهر أعلى الشاشة للزوار
+// ════════════════════════════════════════════════════════════════
+class SubscribeBanner extends StatelessWidget {
+  const SubscribeBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // لا تُظهر البانر للمشتركين
+    if (SubCompat.isPremium) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () => Navigator.push(context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const HowToSubscribePage(),
+            transitionDuration: const Duration(milliseconds: 350),
+            transitionsBuilder: (_, a, __, c) =>
+                SlideTransition(
+                  position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                      .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+                  child: c),
+          )),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: C.goldBg,
+          borderRadius: BorderRadius.circular(T.rMd),
+          border: Border.all(color: C.gold.withOpacity(0.4))),
+        child: Row(children: [
+          const Icon(Icons.workspace_premium_rounded, color: C.gold, size: 18),
+          const SizedBox(width: 10),
+          Expanded(child: Text(
+            AuthService.currentUser == null
+                ? 'سجّل الدخول لتشغيل المحتوى — ساعة مجانية!'
+                : 'اشترك الآن للوصول الكامل بدون قيود',
+            style: T.cairo(s: FS.sm, c: C.gold, w: FontWeight.w700))),
+          const Icon(Icons.arrow_forward_ios_rounded, color: C.gold, size: 13),
+        ]),
+      ),
+    );
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
 void showLoginGate(BuildContext context, {String? message}) {
   showModalBottomSheet(
     context: context,
@@ -461,7 +797,6 @@ void showLoginGate(BuildContext context, {String? message}) {
   );
 }
 
-// Helper: show free expired
 void showFreeExpired(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -486,7 +821,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
     HomePage(),
     ContentPage(type: 'movie',   label: 'أفلام'),
     ContentPage(type: 'series',  label: 'مسلسلات'),
-    LivePage(),    // ★ رياضة الآن tab داخل LivePage
+    LivePage(),
     SearchPage(),
     ProfilePage(),
   ];
@@ -495,38 +830,37 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // ★ FIX: Move SystemChrome BEFORE first frame to prevent ANR on modern Android
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: []);
 
     AppState.onPartialLoad = () { if (mounted) setState(() {}); };
 
-    // ★ FIX: Stagger ALL heavy work — each step delayed to let UI render first
-    // Modern Android (API 31+) triggers ANR if main thread is busy > 5 seconds
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      // Step 1: Detect TV layout (lightweight, immediate)
       unawaited(TVLayout.detect());
 
-      // Step 2: Load subscription data (100ms delay)
       Future.delayed(const Duration(milliseconds: 100), () {
         if (!mounted) return;
         unawaited(Sub.load().catchError((_) {}));
       });
 
-      // Step 3: Load content (200ms delay — UI is fully rendered by now)
       Future.delayed(const Duration(milliseconds: 200), () {
         if (!mounted) return;
-        // ★ FIX: Only ONE loadAll call — prevents double concurrent network load
+        // ★ تحميل المحتوى فقط إذا لم يكن محمّلاً من الـ Splash
         if (!AppState.isLoaded) {
           unawaited(AppState.loadAll().then((_) {
             if (!mounted) return;
             setState(() {});
-            // Step 4: Preload posters only after content is ready
             Future.delayed(const Duration(milliseconds: 300), () {
               if (mounted) AppState.preloadPosters(context);
             });
           }).catchError((_) {}));
+        } else {
+          // البيانات موجودة من الـ Splash → اعرضها فوراً
+          if (mounted) setState(() {});
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) AppState.preloadPosters(context);
+          });
         }
       });
     });
@@ -541,7 +875,6 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState s) {
     if (s == AppLifecycleState.resumed) {
       final now = DateTime.now();
-      // ★ debounce: reload max every 5 minutes (prevents ANR on resume)
       if (_lastResume == null || now.difference(_lastResume!).inMinutes >= 5) {
         _lastResume = now;
         unawaited(AppState.loadAll().catchError((_) {}));
@@ -554,14 +887,13 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
     if (TVLayout.isTV) return _TVShell(pages: _pages);
     return Scaffold(
       backgroundColor: C.bg,
-      extendBody: true,  // ★ allows content to scroll under floating nav
+      extendBody: true,
       body: IndexedStack(index: _idx, children: _pages),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   Widget _buildBottomNav() {
-    // ★ 2026 Floating Nav — زجاجي عائم مع تأثير blur
     return SafeArea(
       top: false,
       child: Padding(
@@ -608,7 +940,6 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          // ★ Pill indicator + icon in one animated block
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOutCubic,
@@ -649,6 +980,7 @@ class _TVShell extends StatefulWidget {
   const _TVShell({required this.pages});
   @override State<_TVShell> createState() => _TVShellState();
 }
+
 class _TVShellState extends State<_TVShell> {
   int  _idx = 0;
   bool _navFocused = false;
@@ -662,30 +994,48 @@ class _TVShellState extends State<_TVShell> {
     (Icons.search_rounded,        'بحث'),
     (Icons.person_rounded,        'حسابي'),
   ];
+
   @override void dispose() { _navFocus.dispose(); super.dispose(); }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: C.bg,
     body: Row(children: [
-      Focus(focusNode: _navFocus,
+      Focus(
+        focusNode: _navFocus,
         onKeyEvent: (node, event) {
           if (event is! KeyDownEvent) return KeyEventResult.ignored;
-          if (event.logicalKey == LogicalKeyboardKey.arrowUp)   { setState(() => _idx = (_idx-1).clamp(0,_navItems.length-1)); return KeyEventResult.handled; }
-          if (event.logicalKey == LogicalKeyboardKey.arrowDown) { setState(() => _idx = (_idx+1).clamp(0,_navItems.length-1)); return KeyEventResult.handled; }
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight){ setState(() => _navFocused = false); return KeyEventResult.handled; }
+          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+            setState(() => _idx = (_idx - 1).clamp(0, _navItems.length - 1));
+            return KeyEventResult.handled;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+            setState(() => _idx = (_idx + 1).clamp(0, _navItems.length - 1));
+            return KeyEventResult.handled;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+            setState(() => _navFocused = false);
+            return KeyEventResult.handled;
+          }
           return KeyEventResult.ignored;
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width: _navFocused ? 180 : 72, color: C.bg,
+          width: _navFocused ? 180 : 72,
+          color: C.bg,
           child: Column(children: [
             const SizedBox(height: 40),
-            Padding(padding: const EdgeInsets.only(bottom: 32, left: 16, right: 16),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32, left: 16, right: 16),
               child: ShaderMask(
                 shaderCallback: (b) => LinearGradient(colors: [C.gold, C.goldDim]).createShader(b),
                 blendMode: BlendMode.srcIn,
-                child: Text(_navFocused ? 'TOTV+' : 'T+',
-                  style: GoogleFonts.cinzelDecorative(fontSize: _navFocused ? 18 : 14, fontWeight: FontWeight.w900, color: C.textPri)))),
+                child: Text(
+                  _navFocused ? 'TOTV+' : 'T+',
+                  style: GoogleFonts.cinzelDecorative(
+                      fontSize: _navFocused ? 18 : 14,
+                      fontWeight: FontWeight.w900,
+                      color: C.textPri)))),
             ...List.generate(_navItems.length, (i) {
               final (icon, label) = _navItems[i];
               final active = _idx == i;
@@ -694,17 +1044,24 @@ class _TVShellState extends State<_TVShell> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  padding: EdgeInsets.symmetric(horizontal: _navFocused ? 16 : 12, vertical: 12),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: _navFocused ? 16 : 12, vertical: 12),
                   decoration: BoxDecoration(
                     color: active ? C.gold.withOpacity(0.15) : Colors.transparent,
                     borderRadius: BorderRadius.circular(R.md),
-                    border: active ? Border.all(color: C.gold.withOpacity(0.4), width: 0.8) : null),
+                    border: active
+                        ? Border.all(color: C.gold.withOpacity(0.4), width: 0.8)
+                        : null),
                   child: Row(children: [
                     Icon(icon, color: active ? C.gold : Colors.white54, size: 22),
-                    if (_navFocused) ...[const SizedBox(width: 12),
-                      Expanded(child: Text(label, style: GoogleFonts.cairo(
-                          fontSize: FS.md, color: active ? C.gold : Colors.white70,
-                          fontWeight: active ? FontWeight.w700 : FontWeight.w400)))],
+                    if (_navFocused) ...[
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(label,
+                          style: GoogleFonts.cairo(
+                              fontSize: FS.md,
+                              color: active ? C.gold : Colors.white70,
+                              fontWeight: active ? FontWeight.w700 : FontWeight.w400))),
+                    ],
                   ])));
             }),
           ]),
