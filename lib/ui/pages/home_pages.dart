@@ -19,6 +19,39 @@ bool _canPlay(BuildContext context) {
   return true;
 }
 
+// ── Lock overlay: طبقة القفل على بطاقات المحتوى للزوار ────────
+Widget _buildLockedCard({
+  required BuildContext context,
+  required Widget child,
+  required dynamic item,
+  required String type,
+}) {
+  // المشترك يرى المحتوى بدون قفل
+  if (SubCompat.isPremium) return child;
+  return Stack(
+    children: [
+      child,
+      Positioned.fill(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.38),
+            borderRadius: BorderRadius.circular(R.sm),
+          ),
+          child: Center(
+            child: Icon(
+              AuthService.currentUser == null
+                  ? Icons.person_rounded
+                  : Icons.lock_rounded,
+              color: C.gold.withOpacity(0.9),
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
 
 class HomePage extends StatefulWidget {
   const HomePage();
@@ -316,6 +349,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 onPlay: _playHero,
                 onInfo: _infoHero,
               )),
+
+            // ★ بانر الاشتراك — يظهر فقط لغير المشتركين
+            const SliverToBoxAdapter(child: SubscribeBanner()),
 
             // ── Navigation Categories (TOD horizontal tabs) ──
             SliverToBoxAdapter(child: _CategoryTabs(
