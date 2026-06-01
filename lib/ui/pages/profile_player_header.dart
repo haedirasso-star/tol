@@ -500,7 +500,7 @@ class _PurchasePlansButton extends StatelessWidget {
     return GestureDetector(
       onTap: () { Sound.hapticM(); _showPlans(context); },
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(R.lg),
+        borderRadius: BorderRadius.circular(R.xl),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
@@ -509,7 +509,7 @@ class _PurchasePlansButton extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [C.gold.withOpacity(0.16), C.gold.withOpacity(0.04)],
                 begin: Alignment.topRight, end: Alignment.bottomLeft),
-              borderRadius: BorderRadius.circular(R.lg),
+              borderRadius: BorderRadius.circular(R.xl),
               border: Border.all(color: C.gold.withOpacity(0.45), width: 1),
               boxShadow: [BoxShadow(color: C.gold.withOpacity(0.1), blurRadius: 24)]),
             child: Row(children: [
@@ -2094,18 +2094,14 @@ class _AISupportPageState extends State<_AISupportPage> {
 
   String? _localReply(String q) {
     final s = q.toLowerCase().trim();
-    // تجاهل الرسائل الفارغة جداً أو غير المفهومة
     if (s.length < 2) return 'لم أفهم سؤالك، ممكن توضح أكثر؟ 😊';
 
-    // ── تحيات ─────────────────────────────────────────
     if (_has(s, ['مرحبا','هلو','هاي','السلام','اهلا','هاي','hi','hello','hey']))
       return 'أهلاً وسهلاً! 👋\nأنا مساعد TOTV+ الذكي.\nكيف يمكنني مساعدتك اليوم؟';
 
-    // ── أسعار واشتراك ─────────────────────────────────
     if (_has(s, ['سعر','بكم','بكم','كم سعر','كم يكلف','اشتراك','باقة','باقه','اسعار']))
       return 'أسعار TOTV+ 💰\n• شهري: 5,000 د.ع — جهاز واحد\n• 3 أشهر: 13,000 د.ع — جهازان\n• سنوي: 45,000 د.ع — جهازان\nجميع الجودات + بلا إعلانات ✅';
 
-    // ── طرق الدفع ─────────────────────────────────────
     if (_has(s, ['fib','فيب','فب','دفع','ادفع','كيف ادفع','طريقة الدفع']))
       return 'الدفع عبر FIB 🏦\n1️⃣ حوّل المبلغ لـ: 07714415816\n   الاسم: حيدر عصام\n2️⃣ أرسل إيصال التحويل من صفحة الاشتراك\n✅ يتم التفعيل خلال دقائق';
 
@@ -2118,47 +2114,37 @@ class _AISupportPageState extends State<_AISupportPage> {
     if (s.contains('كي') && _has(s, ['كي','key cash','كاش']) && !_has(s, ['سوبر','super']))
       return 'الدفع عبر كي 🔑\n• الرقم: 7065169257\nبعد التحويل أرسل الإيصال من صفحة الاشتراك ✅';
 
-    // ── تفعيل الاشتراك ────────────────────────────────
     if (_has(s, ['تفعيل','فعّل','فعل','اشترك','username','يوزر','كود التفعيل','تفعيل الاشتراك']))
       return 'تفعيل الاشتراك 🔐\n1️⃣ اذهب لـ حسابي\n2️⃣ اضغط "تفعيل الاشتراك"\n3️⃣ أدخل username و password\n4️⃣ اضغط "تفعيل اشتراكي"\n✅ يتفعل فوراً!';
 
-    // ── مشاكل البث ───────────────────────────────────
     if (_has(s, ['توقف','يتوقف','بطيء','تقطع','تقطيع','لا يعمل','مو شغال','ما يشتغل','مشكلة','مشكله','بث','يبث']))
       return 'حل مشاكل البث 📺\n1️⃣ تحقق من سرعة الإنترنت (يحتاج 5Mbps+)\n2️⃣ خفّض جودة البث (SD أو HD)\n3️⃣ أغلق التطبيق وأعد فتحه\n4️⃣ تحقق من انتهاء اشتراكك\nإذا استمر → تواصل مع الدعم 🛠';
 
-    // ── مشاكل تسجيل الدخول ───────────────────────────
     if (_has(s, ['ما يدخل','لا يدخل','تسجيل دخول','دخول','لوجن','login','ما تقبل']))
       return 'مشكلة تسجيل الدخول 🔑\n• تأكد من صحة البريد وكلمة المرور\n• جرب "نسيت كلمة المرور"\n• إذا لم تتذكر بريدك → تواصل مع الدعم 📞';
 
-    // ── نسيان كلمة المرور ────────────────────────────
     if (_has(s, ['نسيت','نسيت كلمة','كلمة مرور','password','باسورد']))
       return 'استعادة كلمة المرور 🔄\n1️⃣ اضغط "تسجيل الدخول"\n2️⃣ اضغط "نسيت كلمة المرور"\n3️⃣ أدخل بريدك الإلكتروني\n4️⃣ افتح الرابط في بريدك ✅';
 
-    // ── جودة البث ────────────────────────────────────
     if (_has(s, ['جودة','hd','4k','sd','fhd','كيفية تغيير الجودة']))
       return 'جودات البث المتاحة 🎬\n• SD — للإنترنت البطيء (2Mbps)\n• HD 720p — (5Mbps)\n• FHD 1080p — (10Mbps)\n• 4K — للمشتركين فقط (25Mbps)\nغيّر الجودة من ⚙️ أثناء التشغيل';
 
-    // ── الأجهزة المدعومة ─────────────────────────────
     if (_has(s, ['جهاز','اجهزة','موبايل','تلفزيون','تي في','tv','ايفون','iphone','android','ios']))
       return 'الأجهزة المدعومة 📱\n• Android 5.0+\n• iOS 12+\n• Android TV / Google TV\n• Amazon Fire Stick\n\nالباقة الشهرية: جهاز واحد\nالبقية: جهازان';
 
-    // ── الحساب ───────────────────────────────────────
     if (_has(s, ['حساب','اكونت','account','بروفايل','profile']))
       return 'لإدارة حسابك 👤\nاذهب لـ صفحة "حسابي" في التطبيق حيث يمكنك:\n• عرض معلومات اشتراكك\n• تغيير الإعدادات\n• التواصل مع الدعم';
 
-    // ── الإلغاء والاسترداد ───────────────────────────
     if (_has(s, ['الغ','الغاء','استرداد','refund','ارجاع','استرجاع']))
       return 'الإلغاء والاسترداد 📋\nللإلغاء أو استرداد المبلغ تواصل مع الدعم خلال 24 ساعة من الاشتراك.\nسنعالج طلبك في أقرب وقت 🤝';
 
-    // ── شكر ومجاملات ─────────────────────────────────
     if (_has(s, ['شكرا','شكراً','ممتاز','رائع','حلو','تمام','يسلمو','thanks','thank']))
       return 'العفو! سعيد بمساعدتك 😊\nإذا احتجت أي شيء آخر، أنا هنا دائماً!';
 
-    // ── استفسارات غير مفهومة ─────────────────────────
     if (s.length < 5 || _has(s, ['؟','?','..','لا افهم','ايش']))
       return 'ممكن توضح سؤالك أكثر؟ 🤔\nمثلاً: "كيف أدفع؟" أو "سعر الاشتراك؟" أو "مشكلة في البث"';
 
-    return null; // ذهب للـ API
+    return null;
   }
 
   bool _has(String text, List<String> keywords) =>
@@ -2173,7 +2159,6 @@ class _AISupportPageState extends State<_AISupportPage> {
     setState(() { _msgs.add(_Msg(text: text, isUser: true)); _typing = true; });
     _scrollDown();
 
-    // 1. Local smart reply
     final local = _localReply(text);
     if (local != null) {
       await Future.delayed(const Duration(milliseconds: 700));
@@ -2183,7 +2168,6 @@ class _AISupportPageState extends State<_AISupportPage> {
       return;
     }
 
-    // 2. Claude AI API
     try {
       final history = _msgs.length > 10 ? _msgs.sublist(_msgs.length - 10) : _msgs;
       final msgs = history.map((m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text}).toList();
@@ -2209,7 +2193,6 @@ class _AISupportPageState extends State<_AISupportPage> {
       }
     } catch (e) { debugPrint('[profile_player_header] $e'); }
 
-    // 3. Fallback
     final fb = 'شكرا على سؤالك!\nللمساعدة الفورية تواصل مع الدعم عبر الزر ادناه.';
     if (mounted) setState(() { _typing = false; _msgs.add(_Msg(text: fb, isUser: false)); });
     _scrollDown();
@@ -2240,7 +2223,6 @@ class _AISupportPageState extends State<_AISupportPage> {
     return Scaffold(
       backgroundColor: C.bg,
       body: Stack(children: [
-        // Glassmorphism background
         if (poster.isNotEmpty)
           Positioned.fill(child: ImageFiltered(
             imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
@@ -2249,12 +2231,9 @@ class _AISupportPageState extends State<_AISupportPage> {
         Positioned.fill(child: Container(color: Colors.black.withOpacity(0.90))),
 
         SafeArea(child: Column(children: [
-          // Header
           _buildHeader(context),
           Divider(height: 1, color: Colors.white.withOpacity(0.06), indent: 16, endIndent: 16),
-          // Quick suggestions
           _buildChips(),
-          // Chat
           Expanded(child: ListView.builder(
             controller: _scroll,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -2292,10 +2271,9 @@ class _AISupportPageState extends State<_AISupportPage> {
       ])),
       GestureDetector(
         onTap: () {
-          // ★ يعمل دائماً — fallback لرقم الدعم الثابت
           final wa = RC.whatsapp.isNotEmpty
               ? RC.whatsapp.replaceAll('+', '')
-              : '9647714415816'; // رقم الدعم الافتراضي
+              : '9647714415816';
           final msg = Uri.encodeComponent('مرحباً، أحتاج مساعدة في تطبيق TOTV+');
           launchUrl(
             Uri.parse('https://wa.me/$wa?text=$msg'),
