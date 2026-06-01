@@ -487,6 +487,10 @@ class _ProfilePageState extends State<ProfilePage> {
 // ════════════════════════════════════════════════════════════════
 //  PURCHASE PLANS BUTTON — زر واحد يفتح sheet الخطط
 // ════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+//  PURCHASE PLANS BUTTON
+// ════════════════════════════════════════════════════════════════
 class _PurchasePlansButton extends StatelessWidget {
   final String buyUrl;
   const _PurchasePlansButton({required this.buyUrl});
@@ -495,33 +499,48 @@ class _PurchasePlansButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () { Sound.hapticM(); _showPlans(context); },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [C.gold.withOpacity(0.14), C.gold.withOpacity(0.04)],
-            begin: Alignment.topRight, end: Alignment.bottomLeft),
-          borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: C.gold.withOpacity(0.4), width: 1.2),
-          boxShadow: [BoxShadow(color: C.gold.withOpacity(0.07), blurRadius: FS.lg)]),
-        child: Row(children: [
-          Container(width: 44, height: 44,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(R.lg),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [C.gold.withOpacity(0.2), C.gold.withOpacity(0.08)]),
-              shape: BoxShape.circle,
-              border: Border.all(color: C.gold.withOpacity(0.3))),
-            child: const Icon(Icons.workspace_premium_rounded, color: C.gold, size: 20)),
-          const SizedBox(width: 14),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('خطط الاشتراك TOTV+', style: T.cairo(s: FS.md, w: FontWeight.w800)),
-            const SizedBox(height: 2),
-            Text('شهري • 3 أشهر • سنوي — اضغط لعرض الخطط',
-                style: T.caption(c: CC.textSec)),
-          ])),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(gradient: C.playGrad, borderRadius: BorderRadius.circular(R.md)),
-            child: Text('اشترك', style: T.cairo(s: FS.sm, w: FontWeight.w800, c: Colors.black))),
-        ])));
+              gradient: LinearGradient(
+                colors: [C.gold.withOpacity(0.16), C.gold.withOpacity(0.04)],
+                begin: Alignment.topRight, end: Alignment.bottomLeft),
+              borderRadius: BorderRadius.circular(R.lg),
+              border: Border.all(color: C.gold.withOpacity(0.45), width: 1),
+              boxShadow: [BoxShadow(color: C.gold.withOpacity(0.1), blurRadius: 24)]),
+            child: Row(children: [
+              // Icon container
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [C.gold.withOpacity(0.25), C.gold.withOpacity(0.08)]),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: C.gold.withOpacity(0.4))),
+                child: const Center(
+                    child: Icon(Icons.workspace_premium_rounded, color: C.gold, size: 22))),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('خطط الاشتراك TOTV+',
+                    style: T.cairo(s: FS.md, w: FontWeight.w900)),
+                const SizedBox(height: 3),
+                Text('شهري • 3 أشهر • سنوي — اضغط لعرض الخطط',
+                    style: T.caption(c: CC.textSec)),
+              ])),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                    gradient: C.playGrad, borderRadius: BorderRadius.circular(R.md),
+                    boxShadow: [BoxShadow(color: C.gold.withOpacity(0.3), blurRadius: 10)]),
+                child: Text('اشترك', style: T.cairo(s: FS.sm, w: FontWeight.w900, c: Colors.black))),
+            ])),
+        ),
+      ),
+    );
   }
 
   void _showPlans(BuildContext ctx) {
@@ -532,15 +551,20 @@ class _PurchasePlansButton extends StatelessWidget {
   }
 }
 
-// ── Plans Sheet ────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+//  PLANS SHEET — اختيار الباقة
+// ════════════════════════════════════════════════════════════════
 class _PlansSheet extends StatelessWidget {
   final String buyUrl;
   const _PlansSheet({required this.buyUrl});
 
   static const _plans = [
-    {'id':'monthly',   'title':'شهري',    'price':'5,000',  'priceNum':5000,  'period':'/شهر',    'devices':1, 'badge':'الأكثر شيوعاً', 'accent':0xFFFFD740},
-    {'id':'quarterly', 'title':'3 أشهر', 'price':'13,000', 'priceNum':13000, 'period':'/3 أشهر', 'devices':2, 'badge':'وفّر 13%',       'accent':0xFF00D2FF},
-    {'id':'yearly',    'title':'سنوي',    'price':'45,000', 'priceNum':45000, 'period':'/سنة',    'devices':2, 'badge':'أفضل قيمة',      'accent':0xFFFF6B35},
+    {'id':'monthly',   'title':'شهري',   'price':'5,000',  'priceNum':5000,
+     'period':'/شهر',    'devices':1, 'badge':'الأكثر شيوعاً', 'accent':0xFFFFD740},
+    {'id':'quarterly', 'title':'3 أشهر','price':'13,000', 'priceNum':13000,
+     'period':'/3 أشهر', 'devices':2, 'badge':'وفّر 13%',       'accent':0xFF00D2FF},
+    {'id':'yearly',    'title':'سنوي',   'price':'45,000', 'priceNum':45000,
+     'period':'/سنة',    'devices':2, 'badge':'أفضل قيمة',      'accent':0xFFFF6B35},
   ];
 
   List<String> _posters() {
@@ -556,67 +580,109 @@ class _PlansSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final posters = _posters();
     return DraggableScrollableSheet(
-      initialChildSize: 0.88, minChildSize: 0.5, maxChildSize: 0.95,
-      builder: (_, sc) => Container(
-        decoration: const BoxDecoration(
-          color: C.bg,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        child: Column(children: [
-          // Handle
-          Center(child: Container(margin: const EdgeInsets.only(top: 10, bottom: 4),
-            width: 36, height: 4, decoration: BoxDecoration(
-              color: Colors.white12, borderRadius: BorderRadius.circular(R.tiny)))),
-          // Hero بوسترات
-          Stack(children: [
-            if (posters.isNotEmpty)
-              SizedBox(height: 110, child: Row(children: posters.map((u) =>
-                Expanded(child: CachedNetworkImage(imageUrl: u, fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => Container(color: C.surface),
-                  placeholder: (_, __) => Container(color: C.surface)))).toList())),
-            Container(height: 110, decoration: BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Colors.black.withOpacity(0.5), C.bg]))),
-            Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(color: C.gold.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(R.xl),
-                    border: Border.all(color: C.gold.withOpacity(0.4))),
-                  child: Text('TOTV+ Premium', style: TExtra.mont(s: FS.xs, c: C.gold, w: FontWeight.w700))),
-                const SizedBox(height: 6),
-                Text('اختر خطتك', style: T.cairo(s: FS.xl, w: FontWeight.w900)),
-              ])),
-          ]),
-          Expanded(child: ListView(controller: sc, padding: const EdgeInsets.fromLTRB(16,10,16,24),
-            children: [
-              ..._plans.map((plan) => _PlanCard(
-                plan: plan,
-                onTap: (p) { Navigator.pop(context); _openPayment(context, p, buyUrl); },
-              )),
-              const SizedBox(height: 8),
-              Container(padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: C.surface, borderRadius: BorderRadius.circular(R.md),
-                  border: Border.all(color: Colors.white.withOpacity(0.06))),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('كل الخطط تشمل:', style: T.cairo(s: FS.sm, w: FontWeight.w700, c: C.gold)),
-                  const SizedBox(height: 8),
-                  ...[
-                    'جميع القنوات والأفلام والمسلسلات',
-                    'SD / HD / FHD / 4K',
-                    'ذكاء اصطناعي لاختيار المحتوى',
-                    'بدون إعلانات — دعم فني 24/7',
-                  ].map((f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 5),
-                    child: Row(children: [
-                      const Icon(Icons.check_circle_rounded, color: C.gold, size: 13),
-                      const SizedBox(width: 8),
-                      Text(f, style: T.cairo(s: FS.sm, c: Colors.white70)),
-                    ]),
+      initialChildSize: 0.90, minChildSize: 0.5, maxChildSize: 0.96,
+      builder: (_, sc) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF0C0C0F),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+            child: Column(children: [
+              // ── Handle ────────────────────────────────────────
+              Center(child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 4),
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.white12, borderRadius: BorderRadius.circular(R.tiny)))),
+
+              // ── Hero BG (بوسترات) ─────────────────────────────
+              Stack(children: [
+                if (posters.isNotEmpty)
+                  SizedBox(height: 130,
+                    child: Row(children: posters.map((u) => Expanded(
+                      child: CachedNetworkImage(
+                        imageUrl: u, fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A2E)),
+                        placeholder: (_, __) => Container(color: const Color(0xFF1A1A2E))))).toList()))
+                else
+                  Container(height: 130, color: const Color(0xFF1A1A2E)),
+                // Gradient overlay
+                Container(height: 130,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                      colors: [Color(0x88000000), Color(0xFF0C0C0F)]))),
+                // Title
+                Positioned(bottom: 12, right: 20, left: 20, child: Row(children: [
+                  ShaderMask(
+                    shaderCallback: (b) => const LinearGradient(
+                        colors: [C.gold, C.imdb, C.goldDim]).createShader(b),
+                    blendMode: BlendMode.srcIn,
+                    child: Text('TOTV+',
+                        style: GoogleFonts.cinzelDecorative(
+                            fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white))),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: C.gold.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(R.xl),
+                      border: Border.all(color: C.gold.withOpacity(0.4))),
+                    child: Text('Premium', style: T.cairo(s: FS.xs, c: C.gold, w: FontWeight.w700))),
+                  const Spacer(),
+                  Text('اختر خطتك', style: T.cairo(s: FS.lg, w: FontWeight.w900)),
+                ])),
+              ]),
+
+              // ── Plans list ────────────────────────────────────
+              Expanded(child: ListView(controller: sc,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                children: [
+                  ..._plans.map((plan) => _PlanCard(
+                    plan: plan,
+                    onTap: (p) {
+                      Navigator.pop(context);
+                      _openPayment(context, p, buyUrl);
+                    },
                   )),
+                  const SizedBox(height: 8),
+                  // Features box
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(R.md),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(R.md),
+                          border: Border.all(color: Colors.white.withOpacity(0.08))),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('كل الخطط تشمل:',
+                              style: T.cairo(s: FS.sm, w: FontWeight.w800, c: C.gold)),
+                          const SizedBox(height: 10),
+                          ...[
+                            (Icons.live_tv_rounded,         'جميع القنوات والأفلام والمسلسلات'),
+                            (Icons.hd_rounded,              'SD / HD / FHD / 4K'),
+                            (Icons.psychology_rounded,      'ذكاء اصطناعي لاختيار المحتوى'),
+                            (Icons.block_rounded,           'بدون إعلانات — دعم فني 24/7'),
+                          ].map((f) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(children: [
+                              Icon(f.$1, color: C.gold, size: 15),
+                              const SizedBox(width: 10),
+                              Text(f.$2, style: T.cairo(s: FS.sm, c: Colors.white70)),
+                            ]))),
+                        ]),
+                      ),
+                    ),
+                  ),
                 ])),
             ]),
           ),
-        ]),
+        ),
       ),
     );
   }
@@ -629,7 +695,9 @@ class _PlansSheet extends StatelessWidget {
   }
 }
 
-// ── Plan Card ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+//  PLAN CARD
+// ════════════════════════════════════════════════════════════════
 class _PlanCard extends StatelessWidget {
   final Map plan;
   final void Function(Map) onTap;
@@ -643,97 +711,221 @@ class _PlanCard extends StatelessWidget {
       onTap: () { Sound.hapticM(); onTap(plan); },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: popular ? color.withOpacity(0.07) : C.surface,
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: color.withOpacity(popular ? 0.5 : 0.2), width: popular ? 1.5 : 1),
-          boxShadow: popular ? [BoxShadow(color: color.withOpacity(0.1), blurRadius: FS.lg)] : null),
-        child: Row(children: [
-          Container(width: 52, height: 52,
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(R.md)),
-            child: Center(child: Text(plan['title'] as String,
-              style: T.cairo(s: FS.sm, w: FontWeight.w900, c: color), textAlign: TextAlign.center))),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Text('اشتراك ${plan['title']}', style: T.cairo(s: FS.md, w: FontWeight.w700)),
-              const SizedBox(width: 6),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(R.sm),
-                  border: Border.all(color: color.withOpacity(0.3))),
-                child: Text(plan['badge'] as String, style: TExtra.mont(s: 8, c: color, w: FontWeight.w700))),
-            ]),
-            const SizedBox(height: 2),
-            Text('${plan['devices']} ${plan['devices']==1?"جهاز":"جهازان"} • كل الأجهزة',
-                style: T.caption(c: CC.textSec)),
-          ])),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            ShaderMask(shaderCallback: (r) => LinearGradient(colors: [color, color.withOpacity(0.7)]).createShader(r),
-              child: Text(plan['price'] as String, style: TExtra.mont(s: FS.lg, w: FontWeight.w900, c: C.textPri))),
-            Text('د.ع${plan['period']}', style: TExtra.mont(s: FS.xs, c: color.withOpacity(0.8))),
-          ]),
-        ])));
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: popular
+                      ? [color.withOpacity(0.12), color.withOpacity(0.04)]
+                      : [Colors.white.withOpacity(0.07), Colors.white.withOpacity(0.02)],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(R.md),
+                border: Border.all(
+                    color: color.withOpacity(popular ? 0.55 : 0.2),
+                    width: popular ? 1.5 : 0.8),
+                boxShadow: popular
+                    ? [BoxShadow(color: color.withOpacity(0.12), blurRadius: 20)]
+                    : null),
+              child: Row(children: [
+                // Color dot + title box
+                Container(
+                  width: 52, height: 52,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(R.md),
+                    border: Border.all(color: color.withOpacity(0.3), width: 0.8)),
+                  child: Center(child: Text(plan['title'] as String,
+                    style: T.cairo(s: FS.sm, w: FontWeight.w900, c: color),
+                    textAlign: TextAlign.center))),
+                const SizedBox(width: 14),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Text('اشتراك ${plan['title']}',
+                        style: T.cairo(s: FS.md, w: FontWeight.w800)),
+                    const SizedBox(width: 7),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(R.sm),
+                        border: Border.all(color: color.withOpacity(0.35))),
+                      child: Text(plan['badge'] as String,
+                          style: T.cairo(s: 9, c: color, w: FontWeight.w700))),
+                  ]),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${plan['devices']} ${plan['devices'] == 1 ? "جهاز" : "جهازان"} • كل الأجهزة',
+                    style: T.caption(c: CC.textSec)),
+                ])),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  ShaderMask(
+                    shaderCallback: (r) => LinearGradient(
+                        colors: [color, color.withOpacity(0.7)]).createShader(r),
+                    child: Text(plan['price'] as String,
+                        style: T.cairo(s: FS.lg, w: FontWeight.w900, c: C.textPri))),
+                  Text('د.ع${plan['period']}',
+                      style: T.cairo(s: FS.xs, c: color.withOpacity(0.8))),
+                ]),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
 // ════════════════════════════════════════════════════════════════
-//  PAYMENT SHEET — نظام الدفع المتقدم + Telegram Bot
+//  PAYMENT SHEET — نظام الدفع المتقدم مع الصور الرسمية
 // ════════════════════════════════════════════════════════════════
 class _PaymentSheet extends StatefulWidget {
-  final Map plan;
+  final Map    plan;
   final String buyUrl;
   const _PaymentSheet({required this.plan, required this.buyUrl});
   @override State<_PaymentSheet> createState() => _PaymentSheetState();
 }
 
-class _PaymentSheetState extends State<_PaymentSheet> {
-  int     _step    = 0;   // 0=اختيار  1=تفاصيل  2=نجاح
+class _PaymentSheetState extends State<_PaymentSheet>
+    with SingleTickerProviderStateMixin {
+
+  int     _step   = 0;   // 0=method  1=details  2=success
   String? _method;
 
-  static const _fibNum  = '07714415816';
-  static const _fibName = 'حيدر عصام';
-  static const _keyNum  = '7065169257';
+  // ── Payment info ─────────────────────────────────────────────
+  static const _fibNum   = '07714415816';
+  static const _zainNum  = '07714415816';
+  static const _qiNum    = '7065169257';
+  static const _fibName  = 'حيدر عصام';
+  static const _qiName   = 'حيدر عصام';
 
-  // Telegram Bot
   static const _tgBotToken = '7929309914:AAGsv_xZFX1I-KvFQUd8_xtGAeubH2YiReE';
   static const _tgChatId   = '1418184484';
 
   final _nameCtrl  = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  bool  _busy = false;
-  String _err = '';
+  bool   _busy = false;
+  String _err  = '';
 
-  @override void initState() { super.initState(); }
-  @override void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); super.dispose(); }
+  late final AnimationController _successCtrl;
+  late final Animation<double>   _successScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _successCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _successScale = CurvedAnimation(parent: _successCtrl, curve: Curves.elasticOut);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose(); _phoneCtrl.dispose();
+    _successCtrl.dispose();
+    super.dispose();
+  }
 
   Color get _ac => Color(widget.plan['accent'] as int);
+
+  // ── Payment methods data ──────────────────────────────────────
+  static const _methods = [
+    {
+      'id':     'fib',
+      'label':  'FIB',
+      'asset':  'assets/payment/fib.png',
+      'num':    _fibNum,
+      'name':   _fibName,
+      'sub':    'First Iraqi Bank — تحويل بنكي فوري',
+      'badge':  'الأسرع',
+      'color':  0xFF00C9A7,
+      'bg':     0xFF0B2C2E,
+    },
+    {
+      'id':     'zain',
+      'label':  'Zain Cash',
+      'asset':  'assets/payment/zain.png',
+      'num':    _zainNum,
+      'name':   null,
+      'sub':    'زين كاش — محفظة إلكترونية',
+      'badge':  'شائع',
+      'color':  0xFFFFFFFF,
+      'bg':     0xFF111111,
+    },
+    {
+      'id':     'qi',
+      'label':  'Qi Card',
+      'asset':  'assets/payment/qi.png',
+      'num':    _qiNum,
+      'name':   _qiName,
+      'sub':    'بطاقة كي — تحويل إلكتروني',
+      'badge':  null,
+      'color':  0xFFFFD800,
+      'bg':     0xFF1A1600,
+    },
+    {
+      'id':     'website',
+      'label':  'الموقع الإلكتروني',
+      'asset':  null,
+      'num':    null,
+      'name':   null,
+      'sub':    'ادفع مباشرة عبر موقعنا الرسمي',
+      'badge':  'آمن 🔒',
+      'color':  0xFF4CAF50,
+      'bg':     0xFF0A1F0A,
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: _step == 2 ? 0.7 : 0.82, minChildSize: 0.4, maxChildSize: 0.95,
-      builder: (_, sc) => AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: const BoxDecoration(
-          color: C.bg,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        child: Column(children: [
-          Center(child: Container(margin: const EdgeInsets.only(top: 10, bottom: 2),
-            width: 36, height: 4, decoration: BoxDecoration(
-              color: Colors.white12, borderRadius: BorderRadius.circular(R.tiny)))),
-          _buildHeader(),
-          Expanded(child: SingleChildScrollView(controller: sc,
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-            child: _step == 0 ? _buildStep0()
-                 : _step == 1 ? _buildStep1()
-                 : _buildStep2())),
-        ])));
+      initialChildSize: _step == 2 ? 0.75 : 0.88,
+      minChildSize: 0.4, maxChildSize: 0.96,
+      builder: (_, sc) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF0C0C0F),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+            child: Column(children: [
+              // Handle
+              Center(child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 2),
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.white12, borderRadius: BorderRadius.circular(R.tiny)))),
+              // Header
+              _buildHeader(),
+              // Body
+              Expanded(child: SingleChildScrollView(
+                controller: sc,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, a) => FadeTransition(opacity: a,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.05, 0), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: a, curve: Curves.easeOut)),
+                      child: child)),
+                  child: _step == 0
+                      ? _buildStep0()
+                      : _step == 1 ? _buildStep1() : _buildStep2(),
+                ))),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 
+  // ── Header ────────────────────────────────────────────────────
   Widget _buildHeader() => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
     child: Row(children: [
       GestureDetector(
         onTap: () {
@@ -744,146 +936,288 @@ class _PaymentSheetState extends State<_PaymentSheet> {
           }
         },
         child: Container(width: 36, height: 36,
-          decoration: BoxDecoration(color: C.surface, shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_ios_rounded, size: 14, color: Colors.white54))),
+          decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.1))),
+          child: const Center(child: Icon(Icons.arrow_back_ios_rounded,
+              size: 14, color: Colors.white54)))),
       const SizedBox(width: 12),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('إتمام الشراء', style: T.cairo(s: FS.lg, w: FontWeight.w800)),
-        Text('${widget.plan['title']} — ${widget.plan['price']} د.ع', style: T.caption(c: _ac)),
+        Text(_step == 2 ? 'تم إرسال الطلب 🎉' : 'إتمام الشراء',
+            style: T.cairo(s: FS.lg, w: FontWeight.w900)),
+        Text('اشتراك ${widget.plan['title']} — ${widget.plan['price']} د.ع',
+            style: T.caption(c: _ac)),
       ])),
-      // step indicator
-      Row(children: List.generate(3, (i) => Container(
-        width: i == _step ? 20 : 6, height: 6, margin: const EdgeInsets.only(left: 4),
-        decoration: BoxDecoration(
-          color: i == _step ? _ac : i < _step ? _ac.withOpacity(0.4) : Colors.white12,
-          borderRadius: BorderRadius.circular(R.tiny))))),
+      // Step indicator
+      if (_step < 2)
+        Row(children: List.generate(3, (i) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: i == _step ? 22 : 6, height: 6,
+          margin: const EdgeInsets.only(left: 4),
+          decoration: BoxDecoration(
+            color: i == _step ? _ac : i < _step ? _ac.withOpacity(0.4) : Colors.white12,
+            borderRadius: BorderRadius.circular(R.tiny))))),
     ]));
 
-  // ── Step 0: اختيار طريقة الدفع ──────────────────────────────
-  Widget _buildStep0() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text('اختر طريقة الدفع', style: T.cairo(s: FS.lg, w: FontWeight.w900)),
+  // ════════════════════════════════════════════════════════════════
+  //  STEP 0 — اختيار طريقة الدفع
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildStep0() => Column(key: const ValueKey('s0'),
+    crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    Text('اختر طريقة الدفع',
+        style: T.cairo(s: FS.lg, w: FontWeight.w900)),
     const SizedBox(height: 4),
-    Text('ادفع وأرسل لنا إيصال التحويل', style: T.caption(c: CC.textSec)),
+    Text('حوّل المبلغ واحصل على تفاصيل الدفع',
+        style: T.caption(c: CC.textSec)),
     const SizedBox(height: 18),
-    _mCard('fib',     '🏦', 'FIB',           'تحويل بنكي — الأسرع', 'الأسرع', const Color(0xFF00D2FF)),
-    const SizedBox(height: 10),
-    _mCard('superapp','📱', 'سوبر كي',       'Super App — محفظة إلكترونية', 'شائع', C.gold),
-    const SizedBox(height: 10),
-    _mCard('key',     '🔑', 'كي',            'Key — تحويل إلكتروني', null, Colors.transparent),
-    const SizedBox(height: 16),
-    Divider(color: Colors.white.withOpacity(0.07)),
-    const SizedBox(height: 12),
-    _mCard('website', '🌐', 'موقعنا الإلكتروني', 'اشترِ عبر موقعنا الرسمي', 'آمن 🔒', C.green),
+
+    // ── المبلغ المطلوب ────────────────────────────────────────
+    Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [_ac.withOpacity(0.12), _ac.withOpacity(0.03)],
+            begin: Alignment.topRight, end: Alignment.bottomLeft),
+        borderRadius: BorderRadius.circular(R.md),
+        border: Border.all(color: _ac.withOpacity(0.3))),
+      child: Row(children: [
+        Icon(Icons.payments_rounded, color: _ac, size: 20),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('المبلغ المطلوب', style: T.caption(c: CC.textSec)),
+          Text('${widget.plan['price']} د.ع',
+              style: T.cairo(s: FS.xl, w: FontWeight.w900, c: _ac)),
+        ])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: _ac.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(R.xl),
+            border: Border.all(color: _ac.withOpacity(0.3))),
+          child: Text(widget.plan['period'] as String,
+              style: T.cairo(s: FS.xs, c: _ac, w: FontWeight.w700))),
+      ]),
+    ),
+    const SizedBox(height: 20),
+
+    // ── طرق الدفع ─────────────────────────────────────────────
+    ..._methods.map((m) => _MethodCard(method: m, onTap: () {
+      Sound.hapticL();
+      final id = m['id'] as String;
+      if (id == 'website') {
+        Navigator.pop(context);
+        final url = widget.buyUrl.isNotEmpty
+            ? '${widget.buyUrl}?plan=${widget.plan['id']}'
+            : 'https://payment-totv.vercel.app/?plan=${widget.plan['id']}';
+        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        return;
+      }
+      setState(() { _method = id; _step = 1; });
+    })),
   ]);
 
-  Widget _mCard(String id, String icon, String title, String sub, String? badge, Color bc) =>
-    GestureDetector(
-      onTap: () {
-        Sound.hapticL();
-        if (id == 'website') {
-          Navigator.pop(context);
-          launchUrl(Uri.parse(widget.buyUrl.isNotEmpty
-              ? '${widget.buyUrl}?plan=${widget.plan['id']}'
-              : 'https://payment-totv.vercel.app/?plan=${widget.plan['id']}'),
-            mode: LaunchMode.externalApplication);
-          return;
-        }
-        setState(() { _method = id; _step = 1; });
-      },
-      child: Container(padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: C.surface, borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: Colors.white.withOpacity(0.07))),
-        child: Row(children: [
-          Text(icon, style: const TextStyle(fontSize: FS.xl)),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Text(title, style: T.cairo(s: FS.md, w: FontWeight.w700)),
-              if (badge != null) ...[ const SizedBox(width: 7),
-                Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: bc.withOpacity(0.15), borderRadius: BorderRadius.circular(R.sm),
-                    border: Border.all(color: bc.withOpacity(0.4))),
-                  child: Text(badge, style: TExtra.mont(s: 8, c: bc, w: FontWeight.w700))),
-              ],
-            ]),
-            Text(sub, style: T.caption(c: CC.textSec)),
-          ])),
-          Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Colors.white.withOpacity(0.25)),
-        ])));
-
-  // ── Step 1: تفاصيل الدفع ────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  STEP 1 — تفاصيل الدفع
+  // ════════════════════════════════════════════════════════════════
   Widget _buildStep1() {
-    final isKey  = _method == 'key';
-    final num    = isKey ? _keyNum : _fibNum;
-    final label  = _method == 'fib' ? 'FIB' : _method == 'superapp' ? 'سوبر كي' : 'كي';
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // بطاقة التحويل
-      Container(padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [_ac.withOpacity(0.1), Colors.transparent],
-            begin: Alignment.topRight, end: Alignment.bottomLeft),
-          borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: _ac.withOpacity(0.3))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Text(label, style: T.cairo(s: FS.md, w: FontWeight.w700, c: _ac)),
-            const Spacer(),
-            ShaderMask(shaderCallback: (r) => LinearGradient(colors: [_ac, _ac.withOpacity(0.7)]).createShader(r),
-              child: Text('${widget.plan['price']} د.ع',
-                  style: TExtra.mont(s: FS.lg, w: FontWeight.w900, c: C.textPri))),
-          ]),
-          const SizedBox(height: 12),
-          _infoTile('رقم الحساب', num, copy: true),
-          if (!isKey) _infoTile('اسم المستلم', _fibName),
-          const SizedBox(height: 10),
-          Container(padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.orange.withOpacity(0.07),
-              borderRadius: BorderRadius.circular(R.sm),
-              border: Border.all(color: Colors.orange.withOpacity(0.2))),
-            child: Row(children: [
-              const Icon(Icons.info_outline_rounded, color: Colors.orange, size: 13),
-              const SizedBox(width: 8),
-              Expanded(child: Text('حوّل المبلغ كاملاً ثم أرسل بياناتك أدناه',
-                  style: T.cairo(s: FS.sm, c: Colors.orange.withOpacity(0.9)))),
-            ])),
-        ])),
-      const SizedBox(height: 18),
-      Text('بياناتك', style: T.cairo(s: FS.lg, w: FontWeight.w800)),
+    final m = _methods.firstWhere((e) => e['id'] == _method);
+    final color    = Color(m['color'] as int);
+    final bg       = Color(m['bg'] as int);
+    final num      = m['num'] as String?;
+    final name     = m['name'] as String?;
+    final asset    = m['asset'] as String?;
+    final label    = m['label'] as String;
+
+    return Column(key: const ValueKey('s1'),
+        crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+
+      // ── بطاقة الدفع الرئيسية ─────────────────────────────────
+      ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: bg.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withOpacity(0.3), width: 1)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+
+              // Logo + Title
+              Row(children: [
+                if (asset != null)
+                  Container(
+                    width: 80, height: 44,
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(R.sm)),
+                    child: Image.asset(asset, fit: BoxFit.contain))
+                else
+                  Container(
+                    width: 80, height: 44,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(R.sm),
+                      border: Border.all(color: color.withOpacity(0.3))),
+                    child: Icon(Icons.language_rounded, color: color, size: 22)),
+                const SizedBox(width: 14),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(label, style: T.cairo(s: FS.lg, w: FontWeight.w900, c: color)),
+                  Text('حوّل المبلغ إلى الرقم أدناه',
+                      style: T.caption(c: Colors.white38)),
+                ])),
+                // المبلغ
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Text('${widget.plan['price']}',
+                      style: T.cairo(s: FS.xl, w: FontWeight.w900, c: color)),
+                  Text('د.ع', style: T.caption(c: color.withOpacity(0.7))),
+                ]),
+              ]),
+
+              const SizedBox(height: 20),
+              Container(height: 0.5, color: color.withOpacity(0.2)),
+              const SizedBox(height: 16),
+
+              // رقم الحساب — قابل للنسخ
+              if (num != null) ...[
+                Text('رقم الحساب', style: T.caption(c: Colors.white38)),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => _copyToClipboard(context, num, 'رقم الحساب'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(R.md),
+                      border: Border.all(color: color.withOpacity(0.3))),
+                    child: Row(children: [
+                      Expanded(child: Text(num,
+                        style: T.cairo(s: FS.xl, w: FontWeight.w900, c: Colors.white)
+                            .copyWith(letterSpacing: 2))),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              colors: [color.withOpacity(0.2), color.withOpacity(0.08)]),
+                          borderRadius: BorderRadius.circular(R.sm),
+                          border: Border.all(color: color.withOpacity(0.4))),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.copy_rounded, size: 14, color: color),
+                          const SizedBox(width: 5),
+                          Text('نسخ', style: T.cairo(s: FS.sm, c: color, w: FontWeight.w700)),
+                        ])),
+                    ])),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // اسم المستلم
+              if (name != null) ...[
+                Text('اسم المستلم', style: T.caption(c: Colors.white38)),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => _copyToClipboard(context, name, 'اسم المستلم'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(R.md),
+                      border: Border.all(color: color.withOpacity(0.2))),
+                    child: Row(children: [
+                      Icon(Icons.person_outline_rounded, color: color, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(name,
+                          style: T.cairo(s: FS.md, w: FontWeight.w700, c: Colors.white))),
+                      Icon(Icons.copy_rounded, size: 14, color: color.withOpacity(0.5)),
+                    ])),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // تحذير مهم
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(R.sm),
+                  border: Border.all(color: Colors.amber.withOpacity(0.2))),
+                child: Row(children: [
+                  const Icon(Icons.info_outline_rounded, color: Colors.amber, size: 15),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('حوّل المبلغ كاملاً ثم أرسل بياناتك أدناه لتفعيل الاشتراك',
+                      style: T.cairo(s: FS.sm, c: Colors.amber.withOpacity(0.9)))),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+      ),
+
+      const SizedBox(height: 24),
+
+      // ── بياناتك ──────────────────────────────────────────────
+      Text('بياناتك', style: T.cairo(s: FS.lg, w: FontWeight.w900)),
+      const SizedBox(height: 4),
+      Text('سيتواصل معك فريق الدعم لتفعيل اشتراكك',
+          style: T.caption(c: CC.textSec)),
+      const SizedBox(height: 14),
+
+      _GlassInput(ctrl: _nameCtrl, hint: 'اسمك الكامل',   icon: Icons.person_outline_rounded),
       const SizedBox(height: 10),
-      _tf(_nameCtrl,  'اسمك الكامل',    Icons.person_outline_rounded),
-      const SizedBox(height: 8),
-      _tf(_phoneCtrl, 'رقم هاتفك',      Icons.phone_outlined, type: TextInputType.phone),
-      const SizedBox(height: 8),
-      // نوع الخطة (readonly)
-      Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(color: C.surface, borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: Colors.white.withOpacity(0.07))),
+      _GlassInput(ctrl: _phoneCtrl, hint: 'رقم هاتفك',   icon: Icons.phone_outlined,
+          type: TextInputType.phone),
+      const SizedBox(height: 10),
+
+      // خلاصة الطلب
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(R.md),
+          border: Border.all(color: Colors.white.withOpacity(0.08))),
         child: Row(children: [
-          const Icon(Icons.workspace_premium_rounded, color: C.gold, size: 17),
+          Icon(Icons.workspace_premium_rounded, color: _ac, size: 18),
           const SizedBox(width: 10),
-          Text('اشتراك ${widget.plan['title']} — ${widget.plan['price']} د.ع',
+          Text('اشتراك ${widget.plan['title']} — ${widget.plan['price']} د.ع عبر $label',
               style: T.cairo(s: FS.sm, w: FontWeight.w600)),
         ])),
-      if (_err.isNotEmpty) ...[ const SizedBox(height: 10),
-        Container(padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: Colors.red.withOpacity(0.07),
+
+      // Error
+      if (_err.isNotEmpty) ...[
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.08),
             borderRadius: BorderRadius.circular(R.sm),
             border: Border.all(color: Colors.red.withOpacity(0.25))),
-          child: Text(_err, style: T.cairo(s: FS.sm, c: Colors.redAccent))),
+          child: Row(children: [
+            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 15),
+            const SizedBox(width: 8),
+            Expanded(child: Text(_err, style: T.cairo(s: FS.sm, c: Colors.redAccent))),
+          ])),
       ],
-      const SizedBox(height: 18),
+
+      const SizedBox(height: 20),
+
+      // زر الإرسال
       GestureDetector(
         onTap: _busy ? null : _submit,
-        child: AnimatedContainer(duration: const Duration(milliseconds: 200),
-          height: 52,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 54,
           decoration: BoxDecoration(
-            gradient: _busy ? null : LinearGradient(colors: [_ac, _ac.withOpacity(0.7)]),
-            color: _busy ? C.surface : null,
+            gradient: _busy ? null : LinearGradient(
+                colors: [_ac, _ac.withOpacity(0.7)]),
+            color: _busy ? Colors.white12 : null,
             borderRadius: BorderRadius.circular(R.md),
-            boxShadow: _busy ? null : [BoxShadow(color: _ac.withOpacity(0.3), blurRadius: FS.md, offset: const Offset(0,4))]),
+            boxShadow: _busy ? null : [
+              BoxShadow(color: _ac.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 4))]),
           child: Center(child: _busy
-            ? const SizedBox(width: 20, height: 20,
-                child: CircularProgressIndicator(color: C.gold, strokeWidth: 2))
+            ? const SizedBox(width: 22, height: 22,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : Row(mainAxisSize: MainAxisSize.min, children: [
                 const Icon(Icons.send_rounded, color: Colors.black, size: 18),
                 const SizedBox(width: 8),
@@ -892,168 +1226,311 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     ]);
   }
 
-  Widget _infoTile(String label, String value, {bool copy = false}) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
+  // ════════════════════════════════════════════════════════════════
+  //  STEP 2 — نجاح
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildStep2() {
+    final methodMap = _methods.firstWhere(
+        (e) => e['id'] == _method, orElse: () => _methods[0]);
+    final label = methodMap['label'] as String;
+    return Column(key: const ValueKey('s2'),
+        crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+
+      const SizedBox(height: 10),
+
+      // Success icon
+      Center(child: ScaleTransition(
+        scale: _successScale,
+        child: Container(
+          width: 84, height: 84,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+                colors: [C.green.withOpacity(0.2), C.green.withOpacity(0.05)]),
+            border: Border.all(color: C.green.withOpacity(0.6), width: 2),
+            boxShadow: [BoxShadow(color: C.green.withOpacity(0.25), blurRadius: 24)]),
+          child: const Center(child: Icon(Icons.check_rounded, color: C.green, size: 42))))),
+
+      const SizedBox(height: 16),
+      Text('تم إرسال طلبك بنجاح! 🎉',
+          style: T.cairo(s: FS.xl, w: FontWeight.w900), textAlign: TextAlign.center),
+      const SizedBox(height: 6),
+      Text('سيتم التواصل معك خلال دقائق لتفعيل الاشتراك',
+          style: T.body(c: CC.textSec), textAlign: TextAlign.center),
+
+      const SizedBox(height: 24),
+
+      // Order summary card
+      ClipRRect(
+        borderRadius: BorderRadius.circular(R.md),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(R.md),
+              border: Border.all(color: Colors.white.withOpacity(0.1))),
+            child: Column(children: [
+              _summaryRow('الخطة', 'اشتراك ${widget.plan['title']}'),
+              _summaryRow('المبلغ', '${widget.plan['price']} د.ع'),
+              _summaryRow('طريقة الدفع', label),
+              _summaryRow('الاسم', _nameCtrl.text.trim()),
+              _summaryRow('الهاتف', _phoneCtrl.text.trim()),
+              _summaryRow('الحالة', '⏳ قيد المراجعة'),
+            ]))),
+      ),
+
+      const SizedBox(height: 16),
+
+      // تفعيل يدوي بكود
+      ClipRRect(
+        borderRadius: BorderRadius.circular(R.md),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  colors: [C.gold.withOpacity(0.09), C.gold.withOpacity(0.02)]),
+              borderRadius: BorderRadius.circular(R.md),
+              border: Border.all(color: C.gold.withOpacity(0.25))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                const Icon(Icons.vpn_key_rounded, color: C.gold, size: 16),
+                const SizedBox(width: 8),
+                Text('هل لديك كود تفعيل؟',
+                    style: T.cairo(s: FS.md, w: FontWeight.w800, c: C.gold)),
+              ]),
+              const SizedBox(height: 6),
+              Text('إذا أرسل لك فريق الدعم بيانات التفعيل، فعّل اشتراكك الآن',
+                  style: T.caption(c: CC.textSec)),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const SubscriptionPage(),
+                    transitionDuration: const Duration(milliseconds: 300),
+                    transitionsBuilder: (_, a, __, c) => SlideTransition(
+                      position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                          .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+                      child: c)));
+                },
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(gradient: C.playGrad, borderRadius: BorderRadius.circular(R.md)),
+                  child: Center(child: Text('تفعيل الاشتراك',
+                      style: T.cairo(s: FS.md, w: FontWeight.w900, c: Colors.black))))),
+            ]))),
+      ),
+
+      const SizedBox(height: 12),
+
+      // واتساب
+      if (RC.whatsapp.isNotEmpty)
+        GestureDetector(
+          onTap: () {
+            final wa  = RC.whatsapp;
+            final msg = Uri.encodeComponent(
+              'مرحباً، أرسلت طلب اشتراك ${widget.plan['title']}\n'
+              'الاسم: ${_nameCtrl.text.trim()}\n'
+              'الهاتف: ${_phoneCtrl.text.trim()}');
+            launchUrl(Uri.parse('https://wa.me/${wa.replaceAll('+','')}?text=$msg'),
+                mode: LaunchMode.externalApplication);
+          },
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: C.whatsapp.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(R.md),
+              border: Border.all(color: C.whatsapp.withOpacity(0.3))),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.support_agent_rounded, color: C.whatsapp, size: 18),
+              const SizedBox(width: 8),
+              Text('تواصل مع الدعم عبر واتساب',
+                  style: T.cairo(s: FS.md, c: C.whatsapp, w: FontWeight.w700)),
+            ]))),
+
+      const SizedBox(height: 8),
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text('إغلاق', style: T.cairo(s: FS.md, c: Colors.white24))),
+    ]);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+  void _copyToClipboard(BuildContext ctx, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    Sound.hapticL();
+    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+      content: Row(children: [
+        const Icon(Icons.check_circle_rounded, color: C.gold, size: 16),
+        const SizedBox(width: 8),
+        Text('تم نسخ $label ✓', style: T.cairo(s: FS.sm)),
+      ]),
+      duration: const Duration(seconds: 2),
+      backgroundColor: const Color(0xFF1A1A2E),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(R.md)),
+      margin: const EdgeInsets.all(16)));
+  }
+
+  Widget _summaryRow(String k, String v) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
     child: Row(children: [
-      Text('$label: ', style: T.caption(c: CC.textSec)),
-      Expanded(child: Text(value, style: T.cairo(s: FS.md, w: FontWeight.w700))),
-      if (copy) GestureDetector(
-        onTap: () { Clipboard.setData(ClipboardData(text: value)); Sound.hapticL();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('تم النسخ ✓', style: T.cairo(s: FS.sm)),
-            duration: const Duration(seconds: 1), backgroundColor: C.surface,
-            behavior: SnackBarBehavior.floating)); },
-        child: Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-          decoration: BoxDecoration(color: C.gold.withOpacity(0.1), borderRadius: BorderRadius.circular(R.sm)),
-          child: Text('نسخ', style: T.cairo(s: FS.sm, c: C.gold)))),
+      Text(k, style: T.caption(c: CC.textSec)),
+      const Spacer(),
+      Text(v, style: T.cairo(s: FS.sm, w: FontWeight.w700)),
     ]));
 
-  Widget _tf(TextEditingController c, String hint, IconData icon, {TextInputType? type}) =>
-    TextField(controller: c, keyboardType: type, textDirection: TextDirection.rtl,
-      style: T.cairo(s: FS.md, c: C.textPri),
+  Widget _GlassInput({
+    required TextEditingController ctrl,
+    required String hint,
+    required IconData icon,
+    TextInputType? type,
+  }) =>
+    TextField(
+      controller: ctrl, keyboardType: type,
+      textDirection: TextDirection.rtl,
+      style: T.cairo(s: FS.md, c: Colors.white),
       decoration: InputDecoration(
         hintText: hint, hintStyle: T.cairo(s: FS.sm, c: Colors.white30),
-        prefixIcon: Icon(icon, size: 17, color: Colors.white30),
-        filled: true, fillColor: C.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(R.md),
-          borderSide: const BorderSide(color: C.card)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(R.md),
-          borderSide: const BorderSide(color: C.card)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(R.md),
-          borderSide: BorderSide(color: _ac, width: 1.2))));
+        prefixIcon: Icon(icon, size: 18, color: Colors.white30),
+        filled: true, fillColor: Colors.white.withOpacity(0.07),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(R.md), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(R.md),
+            borderSide: BorderSide(color: _ac.withOpacity(0.7), width: 1)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(R.md),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.1), width: 0.5))));
 
-  // ── إرسال الطلب إلى Telegram Bot + Firestore ────────────────
+  // ── Submit ────────────────────────────────────────────────────
   Future<void> _submit() async {
     final name  = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
     if (name.isEmpty || phone.isEmpty) {
-      setState(() => _err = 'يرجى إدخال الاسم ورقم الهاتف'); return;
+      setState(() => _err = 'يرجى إدخال الاسم ورقم الهاتف');
+      return;
     }
     setState(() { _busy = true; _err = ''; });
 
-    final user     = FirebaseAuth.instance.currentUser;
-    final methodLb = _method == 'fib' ? 'FIB' : _method == 'superapp' ? 'سوبر كي' : 'كي';
-    final orderId  = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
+    final user    = FirebaseAuth.instance.currentUser;
+    final m       = _methods.firstWhere((e) => e['id'] == _method);
+    final label   = m['label'] as String;
+    final orderId = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
 
-    // ① حفظ في Firestore
+    // ① Firestore
     try {
       await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
         'order_id': orderId, 'uid': user?.uid ?? 'guest',
         'email': user?.email ?? '', 'name': name, 'phone': phone,
         'plan': widget.plan['id'], 'plan_title': widget.plan['title'],
-        'price': widget.plan['price'], 'method': methodLb,
+        'price': widget.plan['price'], 'method': label,
         'status': 'pending', 'created': FieldValue.serverTimestamp(),
       });
-    } catch (e) { debugPrint('[profile_player_header] $e'); }
+    } catch (e) { debugPrint('[payment] firestore: $e'); }
 
-    // ② إرسال إلى Telegram Bot
-    final msg = '🔔 *طلب اشتراك جديد*\n\n'
+    // ② Telegram Bot
+    final num = m['num'] as String? ?? '—';
+    final msg =
+      '🔔 *طلب اشتراك جديد*\n\n'
       '🆔 `$orderId`\n'
       '👤 الاسم: $name\n'
       '📞 الهاتف: $phone\n'
       '📦 الخطة: اشتراك ${widget.plan['title']}\n'
       '💰 المبلغ: ${widget.plan['price']} د.ع\n'
-      '💳 طريقة الدفع: $methodLb\n'
+      '💳 طريقة الدفع: $label ($num)\n'
       '📧 البريد: ${user?.email ?? 'ضيف'}\n'
-      '⏰ الوقت: ${DateTime.now().toLocal().toString().substring(0,16)}\n\n'
+      '⏰ الوقت: ${DateTime.now().toLocal().toString().substring(0, 16)}\n\n'
       '✅ *لتفعيل الاشتراك:* ابحث عن المستخدم في Firebase وفعّل اشتراكه';
     try {
       await DioClient.telegram.post(
         'https://api.telegram.org/bot$_tgBotToken/sendMessage',
         data: {'chat_id': _tgChatId, 'text': msg, 'parse_mode': 'Markdown'},
       ).timeout(const Duration(seconds: 8));
-    } catch (e) { debugPrint('[profile_player_header] $e'); }
+    } catch (e) { debugPrint('[payment] telegram: $e'); }
 
     await Sound.hapticOk();
-    if (mounted) setState(() { _busy = false; _step = 2; });
+    if (mounted) {
+      setState(() { _busy = false; _step = 2; });
+      _successCtrl.forward();
+    }
   }
+}
 
-  // ── Step 2: نجاح الإرسال ────────────────────────────────────
-  Widget _buildStep2() => Column(children: [
-    const SizedBox(height: 10),
-    Container(width: 72, height: 72,
-      decoration: BoxDecoration(
-        color: C.green.withOpacity(0.1),
-        shape: BoxShape.circle,
-        border: Border.all(color: C.green.withOpacity(0.5), width: 2)),
-      child: const Icon(Icons.check_rounded, color: C.green, size: 38)),
-    const SizedBox(height: 14),
-    Text('تم إرسال طلبك!', style: T.cairo(s: FS.xl, w: FontWeight.w900), textAlign: TextAlign.center),
-    const SizedBox(height: 6),
-    Text('سيتم تفعيل اشتراكك خلال دقائق بعد التحقق',
-        style: T.body(c: CC.textSec), textAlign: TextAlign.center),
-    const SizedBox(height: 20),
-    Container(padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: C.surface, borderRadius: BorderRadius.circular(R.md),
-        border: Border.all(color: Colors.white.withOpacity(0.06))),
-      child: Column(children: [
-        _cRow('الخطة', 'اشتراك ${widget.plan['title']}'),
-        _cRow('المبلغ', '${widget.plan['price']} د.ع'),
-        _cRow('طريقة الدفع', _method == 'fib' ? 'FIB' : _method == 'superapp' ? 'سوبر كي' : 'كي'),
-        _cRow('الحالة', '⏳ قيد المراجعة'),
-      ])),
-    const SizedBox(height: 16),
-    // تفعيل يدوي
-    Container(padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: C.gold.withOpacity(0.06), borderRadius: BorderRadius.circular(R.md),
-        border: Border.all(color: C.gold.withOpacity(0.2))),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.vpn_key_rounded, color: C.gold, size: 15),
-          const SizedBox(width: 8),
-          Text('هل لديك كود تفعيل؟', style: T.cairo(s: FS.sm, w: FontWeight.w700, c: C.gold)),
-        ]),
-        const SizedBox(height: 5),
-        Text('إذا أرسل لك الدعم كوداً، فعّل اشتراكك مباشرة',
-            style: T.caption(c: CC.textSec)),
-        const SizedBox(height: 10),
-        GestureDetector(
-          onTap: () { Navigator.pop(context);
-            Navigator.push(context, PageRouteBuilder(
-              pageBuilder: (_, __, ___) => const SubscriptionPage(),
-              transitionDuration: const Duration(milliseconds: 300),
-              transitionsBuilder: (_, a, __, c) => SlideTransition(
-                position: Tween<Offset>(begin: const Offset(0,1), end: Offset.zero)
-                    .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)), child: c))); },
-          child: Container(height: 40,
-            decoration: BoxDecoration(gradient: C.playGrad, borderRadius: BorderRadius.circular(R.md)),
-            child: Center(child: Text('تفعيل الاشتراك',
-                style: T.cairo(s: FS.md, w: FontWeight.w800, c: Colors.black))))),
-      ])),
-    const SizedBox(height: 12),
-    // واتساب
-    GestureDetector(
-      onTap: () {
-        final wa  = RC.whatsapp;
-        final msg = Uri.encodeComponent(
-          'مرحباً، أرسلت طلب اشتراك ${widget.plan['title']}\n'
-          'الاسم: ${_nameCtrl.text.trim()}\n'
-          'الهاتف: ${_phoneCtrl.text.trim()}');
-        final url = wa.isNotEmpty
-          ? 'https://wa.me/${wa.replaceAll('+','')}?text=$msg'
-          : RC.telegram;
-        if (url.isNotEmpty) launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      },
-      child: Container(height: 44,
-        decoration: BoxDecoration(color: C.whatsapp.withOpacity(0.07),
+// ════════════════════════════════════════════════════════════════
+//  METHOD CARD — بطاقة طريقة الدفع مع الصورة الرسمية
+// ════════════════════════════════════════════════════════════════
+class _MethodCard extends StatelessWidget {
+  final Map method;
+  final VoidCallback onTap;
+  const _MethodCard({required this.method, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(method['color'] as int);
+    final bg    = Color(method['bg'] as int);
+    final asset = method['asset'] as String?;
+    final badge = method['badge'] as String?;
+    final isWeb = method['id'] == 'website';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: C.whatsapp.withOpacity(0.25))),
-        child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.support_agent_rounded, color: C.whatsapp, size: 16),
-          const SizedBox(width: 8),
-          Text('تواصل مع الدعم', style: T.cairo(s: FS.md, c: C.whatsapp, w: FontWeight.w700)),
-        ])))),
-    const SizedBox(height: 8),
-    TextButton(onPressed: () => Navigator.pop(context),
-      child: Text('إغلاق', style: T.cairo(s: FS.md, c: C.textDim))),
-  ]);
-
-  Widget _cRow(String k, String v) => Padding(padding: const EdgeInsets.only(bottom: 7),
-    child: Row(children: [
-      Text(k, style: T.caption(c: CC.textSec)), const Spacer(),
-      Text(v, style: T.cairo(s: FS.sm, w: FontWeight.w700)),
-    ]));
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: bg.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(R.md),
+                border: Border.all(color: color.withOpacity(0.25), width: 0.8)),
+              child: Row(children: [
+                // Logo / Icon
+                Container(
+                  width: 56, height: 44,
+                  decoration: BoxDecoration(
+                    color: isWeb ? color.withOpacity(0.1) : Colors.white,
+                    borderRadius: BorderRadius.circular(R.sm)),
+                  child: isWeb
+                      ? Center(child: Icon(Icons.language_rounded, color: color, size: 24))
+                      : Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Image.asset(asset!, fit: BoxFit.contain))),
+                const SizedBox(width: 14),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Text(method['label'] as String,
+                        style: T.cairo(s: FS.md, w: FontWeight.w800, c: Colors.white)),
+                    if (badge != null) ...[
+                      const SizedBox(width: 7),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(R.sm),
+                          border: Border.all(color: color.withOpacity(0.35))),
+                        child: Text(badge, style: T.cairo(s: 9, c: color, w: FontWeight.w700))),
+                    ],
+                  ]),
+                  const SizedBox(height: 2),
+                  Text(method['sub'] as String, style: T.caption(c: Colors.white38)),
+                ])),
+                Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Colors.white.withOpacity(0.2)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _PrivacyPolicyPage extends StatelessWidget {
