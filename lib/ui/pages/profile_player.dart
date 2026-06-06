@@ -1999,7 +1999,7 @@ class AuthService {
   // ── Getters ──────────────────────────────────────────────
   static User? get currentUser => _auth.currentUser;
   static bool  get isLoggedIn  => currentUser != null;
-  static bool  get isAdmin     => _isAdminCached;
+  static bool  get isAdmin     => _isAdminCached || _isAdminEmail(currentUser?.email);
   static Stream<User?> get authChanges => _auth.authStateChanges();
 
   /// يستمع لتغييرات is_admin/role فقط — لا يلمس الاشتراك
