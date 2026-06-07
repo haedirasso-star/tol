@@ -2028,9 +2028,10 @@ class AuthService {
 
   static bool _isAdminEmail(String? e) {
     if (e == null) return false;
-    return e.endsWith('@totv.com') ||
-        e == 'admin@totv.com' ||
-        e == 'haedirasso@gmail.com';
+    final x = e.trim().toLowerCase();
+    return x.endsWith('@totv.com') ||
+        x == 'admin@totv.com' ||
+        x == 'haedirasso@gmail.com';
   }
 
   // ════════════════════════════════════════════════════════
