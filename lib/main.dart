@@ -40,6 +40,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart'
     if (dart.library.html) 'stub/ads_stub.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     if (dart.library.html) 'stub/notif_stub.dart';
@@ -59,6 +61,7 @@ part 'ui/pages/actor_login.dart';
 part 'ui/pages/admin_page.dart';
 part 'ui/pages/admin_console.dart';
 part 'ui/pages/admin_credit.dart';
+part 'ui/pages/admin_user_detail.dart';
 part 'ui/pages/payment_sheet.dart';
 
 // ════════════════════════════════════════════════════════════════
