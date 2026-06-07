@@ -2005,12 +2005,24 @@ class AuthService {
   /// يستمع لتغييرات is_admin/role فقط — لا يلمس الاشتراك
   static void startAdminListener(String uid) {
     _adminSub?.cancel();
+    final email = currentUser?.email;
+    // تحقّق إضافي: هل الإيميل مُضاف في مجموعة admins؟
+    if (email != null && email.isNotEmpty) {
+      _db.collection('admins').doc(email.trim().toLowerCase()).get().then((doc) {
+        if (doc.exists && !_isAdminCached) {
+          _isAdminCached = true;
+          _adminCtrl.add(true);
+          debugPrint('AuthService: isAdmin=true (admins collection)');
+        }
+      }).catchError((_) {});
+    }
     _adminSub = _db.collection('users').doc(uid).snapshots().listen((snap) {
       if (!snap.exists) return;
       final d = snap.data()!;
       final v = d['is_admin'] == true ||
                 d['role']?.toString() == 'admin' ||
-                _isAdminEmail(currentUser?.email);
+                _isAdminEmail(currentUser?.email) ||
+                _isAdminCached; // لا تُلغِ صلاحية من مجموعة admins
       if (v != _isAdminCached) {
         _isAdminCached = v;
         _adminCtrl.add(v);
