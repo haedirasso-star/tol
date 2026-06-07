@@ -56,6 +56,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     ('version','الإصدارات',Icons.rocket_launch_rounded),
     ('notif','الإشعارات',Icons.notifications_rounded),
     ('banned','المحظورون',Icons.block_rounded),
+    ('admins','المشرفون',Icons.shield_rounded),
     ('config','الإعدادات',Icons.settings_rounded),
   ];
 
@@ -80,7 +81,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         _topBar(),
         Expanded(child: IndexedStack(index:_i, children: const [
           _DashTab(), _UsersTab(), _ActivateTab(), _SubsTab(), _OrdersTab(),
-          _CreditTab(), _RemoteTab(), _VersionTab(), _NotifTab(), _BannedTab(), _ConfigTab(),
+          _CreditTab(), _RemoteTab(), _VersionTab(), _NotifTab(), _BannedTab(), _AdminsTab(), _ConfigTab(),
         ])),
         _bottomNav(),
       ])));
@@ -128,42 +129,82 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 // ════════════════════════════════════════════════════════════════════════
 //  DASHBOARD
 // ════════════════════════════════════════════════════════════════════════
-class _DashTab extends StatelessWidget {
+class _DashTab extends StatefulWidget {
   const _DashTab();
-  @override
-  Widget build(BuildContext context) => StreamBuilder<QuerySnapshot>(
-    stream: _AC.db.collection('users').limit(500).snapshots(),
-    builder: (_, snap) {
-      final docs = snap.data?.docs ?? [];
-      int premium=0,trial=0,expired=0,online=0; final now=DateTime.now();
-      for (final d in docs) {
-        final m=d.data() as Map<String,dynamic>;
-        final sub=(m['subscription'] as Map<String,dynamic>?) ?? {};
-        final plan=sub['plan']?.toString() ?? 'free';
-        final exp=(sub['expiry_date'] as Timestamp?)?.toDate();
-        if (m['is_online']==true) online++;
-        if (plan=='premium') { (exp!=null&&exp.isAfter(now))?premium++:expired++; }
-        else if (plan=='trial') trial++;
-      }
-      return ListView(padding: const EdgeInsets.all(14), children: [
-        _statGrid(context,[
-          ('إجمالي المستخدمين','${docs.length}',_AC.gold),
-          ('مشتركون مدفوعون','$premium',_AC.grn),
-          ('تجريبي / مجاني','$trial',_AC.cyn),
-          ('منتهي الصلاحية','$expired',_AC.red),
-          ('متصلون الآن','$online',_AC.blu),
-        ]),
-        const SizedBox(height:14),
-        const _OrdersPendingCard(),
-        const SizedBox(height:14),
-        _acCard('⚡ إجراءات سريعة', Column(children:[
-          _quick(context,'⚡ تفعيل اشتراك',_AC.gold,2),
-          _quick(context,'📥 الطلبات والحوالات',_AC.blu,4),
-          _quick(context,'💳 الرصيد والسيرفرات',_AC.prp,5),
-          _quick(context,'🎮 التحكم عن بعد',_AC.cyn,6),
-        ])),
+  @override State<_DashTab> createState() => _DashTabState();
+}
+class _DashTabState extends State<_DashTab> {
+  int? _total, _premium, _online, _pending, _expiringSoon;
+  bool _loading = true;
+
+  @override void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    final users = _AC.db.collection('users');
+    final now = Timestamp.now();
+    final soon = Timestamp.fromDate(DateTime.now().add(const Duration(days: 7)));
+    try {
+      // count() تجميعي — لا يُنزّل المستندات، دقيق لأي عدد (آلاف)
+      final results = await Future.wait([
+        users.count().get(),
+        users.where('subscription.plan', isEqualTo: 'premium').count().get(),
+        users.where('is_online', isEqualTo: true).count().get(),
+        _AC.db.collection('orders').where('status', isEqualTo: 'pending').count().get(),
+        users.where('subscription.plan', isEqualTo: 'premium')
+             .where('subscription.expiry_date', isGreaterThan: now)
+             .where('subscription.expiry_date', isLessThan: soon).count().get(),
       ]);
-    });
+      if (!mounted) return;
+      setState(() {
+        _total        = results[0].count;
+        _premium      = results[1].count;
+        _online       = results[2].count;
+        _pending      = results[3].count;
+        _expiringSoon = results[4].count;
+        _loading = false;
+      });
+    } catch (e) {
+      // إن فشل أي count (فهرس مفقود لاستعلام الانتهاء) نعرض الباقي
+      if (!mounted) return;
+      setState(() => _loading = false);
+      debugPrint('[dash] $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      color: _AC.gold, backgroundColor: _AC.card,
+      onRefresh: _load,
+      child: ListView(padding: const EdgeInsets.all(14), children: [
+        if (_loading)
+          const Padding(padding: EdgeInsets.symmetric(vertical: 30),
+            child: Center(child: CircularProgressIndicator(color: _AC.gold)))
+        else
+          _statGrid(context, [
+            ('إجمالي المستخدمين', '${_total ?? '—'}', _AC.gold),
+            ('مشتركون مدفوعون', '${_premium ?? '—'}', _AC.grn),
+            ('متصلون الآن', '${_online ?? '—'}', _AC.blu),
+            ('ينتهي خلال 7 أيام', '${_expiringSoon ?? '—'}', _AC.org),
+            ('طلبات معلّقة', '${_pending ?? '—'}', _AC.red),
+          ]),
+        const SizedBox(height: 6),
+        Center(child: TextButton.icon(onPressed: _load,
+          icon: const Icon(Icons.refresh_rounded, size: 15, color: _AC.t2),
+          label: Text('تحديث', style: _AC.t(s: 11, c: _AC.t2)))),
+        const SizedBox(height: 8),
+        const _OrdersPendingCard(),
+        const SizedBox(height: 14),
+        _acCard('⚡ إجراءات سريعة', Column(children: [
+          _quick(context, '⚡ تفعيل اشتراك', _AC.gold, 2),
+          _quick(context, '📥 الطلبات والحوالات', _AC.blu, 4),
+          _quick(context, '💳 الرصيد والسيرفرات', _AC.prp, 5),
+          _quick(context, '🎮 التحكم عن بعد', _AC.cyn, 6),
+        ])),
+      ]),
+    );
+  }
 
   Widget _statGrid(BuildContext ctx, List<(String,String,Color)> items) {
     final w = (MediaQuery.of(ctx).size.width - 28 - 10) / 2;
@@ -236,8 +277,7 @@ class _UsersTabState extends State<_UsersTab> {
           itemBuilder:(_,i){
             final m=docs[i].data() as Map<String,dynamic>;
             return RepaintBoundary(child:_UserRow(uid:docs[i].id,data:m,
-              onTap:()=>_ActivateSheet.show(context,uid:docs[i].id,
-                email:m['email']?.toString()??'',name:m['display_name']?.toString()??'',presetDays:30),
+              onTap:()=>_UserDetailPage.open(context, docs[i].id),
               onLong:()=>_userActions(context,docs[i].id,m)));
           });
       })),
