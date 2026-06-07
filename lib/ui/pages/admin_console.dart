@@ -65,7 +65,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   @override
   void initState() {
     super.initState();
-    final e = FirebaseAuth.instance.currentUser?.email ?? '';
+    final e = (FirebaseAuth.instance.currentUser?.email ?? '').trim().toLowerCase();
     _allowed = e=='haedirasso@gmail.com' || e=='admin@totv.com' || e.endsWith('@totv.com');
     _checking = false;
   }
