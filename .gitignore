@@ -1,0 +1,4 @@
+android/key.properties
+android/app/*.jks
+**/*.keystore
+android/app/totv_keystore.jks
