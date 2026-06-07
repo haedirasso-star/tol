@@ -42,6 +42,19 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
             ],
 
+            // ── مركز العمليات (يظهر للأدمن فقط) ──
+            AdminAwareBuilder(builder: (isAdmin) => !isAdmin
+              ? const SizedBox.shrink()
+              : Column(children: [
+                  _sectionLabel('الإدارة'), const SizedBox(height: 8),
+                  _menuGroup([
+                    _menuRow(Icons.shield_rounded, 'مركز العمليات',
+                        'الطلبات، التفعيل، الرصيد، المستخدمون',
+                        () => Navigator.of(context).pushNamed('/ops')),
+                  ]),
+                  const SizedBox(height: 16),
+                ])),
+
             // ── الإعدادات ──
             _sectionLabel('الإعدادات'), const SizedBox(height: 8),
             _menuGroup([
@@ -66,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ]),
 
             const SizedBox(height: 20),
-            if (isLog && !isPaid) _freeTimerCard(),
+            if (isLog && !isPaid) const BuyPremiumButton(),
             const SizedBox(height: 20),
             if (isLog) _logoutBtn() else _loginBtn(context),
             const SizedBox(height: 8),
@@ -335,41 +348,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ])),
     ]));
 
-  Widget _freeTimerCard() => StreamBuilder<int>(
-    stream: Stream.periodic(const Duration(seconds: 1), (_) => GuestSession.remainingSecs),
-    initialData: GuestSession.remainingSecs,
-    builder: (ctx, snap) {
-      final frac    = 1.0 - GuestSession.usedFraction;
-      final expired = GuestSession.isExpired;
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: expired ? Colors.red.withOpacity(0.06) : C.surface,
-          borderRadius: BorderRadius.circular(R.md),
-          border: Border.all(color: expired ? Colors.red.withOpacity(0.25) : C.gold.withOpacity(0.2))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Icon(Icons.timer_outlined, color: expired ? Colors.red : C.gold, size: 16),
-            const SizedBox(width: 8),
-            Text('وقت المشاهدة اليومي', style: T.cairo(s: FS.sm, w: FontWeight.w700)),
-            const Spacer(),
-            Text(GuestSession.remainingStr,
-                style: TExtra.mont(s: FS.md, w: FontWeight.w800, c: expired ? Colors.red : C.gold)),
-          ]),
-          const SizedBox(height: 8),
-          ClipRRect(borderRadius: BorderRadius.circular(R.tiny),
-            child: LinearProgressIndicator(value: frac.clamp(0.0, 1.0),
-              backgroundColor: Colors.white10, color: expired ? Colors.red : C.gold, minHeight: 4)),
-          if (expired) ...[ const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () => _push(const SubscriptionPage()),
-              child: Container(height: 36, decoration: BoxDecoration(gradient: C.playGrad, borderRadius: BorderRadius.circular(R.sm)),
-                child: Center(child: Text('اشترك للمشاهدة غير المحدودة',
-                    style: T.cairo(s: FS.sm, w: FontWeight.w700, c: Colors.black))))),
-          ],
-        ]));
-    });
-
   Widget _guestCard(BuildContext ctx) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(color: C.surface, borderRadius: BorderRadius.circular(R.md),
@@ -456,7 +434,17 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () => Navigator.pop(context, true),
             child: Text('خروج', style: T.cairo(s: FS.md, c: C.textPri, w: FontWeight.w700))),
         ]));
-      if (ok == true) { await Sub.logout(); GuestSession.reset(); if (mounted) setState(() {}); }
+      if (ok == true) {
+        await Sub.logout();
+        GuestSession.reset();
+        await AuthService.signOut();          // خروج فعلي من الحساب
+        if (!mounted) return;
+        // العودة فوراً لشاشة تسجيل الدخول الجديدة وإزالة كل ما قبلها
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const FirebaseLoginPage()),
+          (route) => false,
+        );
+      }
     },
     child: Container(height: 48,
       decoration: BoxDecoration(color: Colors.red.withOpacity(0.07),
