@@ -25,12 +25,17 @@ class _CreditEngine {
   /// يخصّص نقطة من أول سيرفر متاح (داخل transaction) ويعيد بياناته.
   /// يرمي استثناءً إذا لا يوجد رصيد.
   static Future<Map<String,String>> allocate({required String uid, required String email}) async {
-    // أحضر المرشّحين المتاحين مرتّبين بالأولوية (خارج الـ transaction لاختيار مرشّح).
-    final q = await _col.where('status', isEqualTo: 'available')
-        .orderBy('priority').limit(10).get();
-    if (q.docs.isEmpty) throw 'لا يوجد رصيد متاح — أضف سيرفرات جديدة';
+    // استعلام بسيط (بلا orderBy) — لا يحتاج فهرساً مركّباً، ثم نرتّب محلياً
+    final snapAll = await _col.where('status', isEqualTo: 'available').limit(25).get();
+    final cands = snapAll.docs.toList()
+      ..sort((a, b) {
+        final pa = (a.data()['priority'] as num?)?.toInt() ?? 1;
+        final pb = (b.data()['priority'] as num?)?.toInt() ?? 1;
+        return pa.compareTo(pb);
+      });
+    if (cands.isEmpty) throw 'لا يوجد رصيد متاح — أضف سيرفرات جديدة';
 
-    for (final cand in q.docs) {
+    for (final cand in cands) {
       final ref = cand.reference;
       try {
         final result = await _db.runTransaction<Map<String,String>?>((tx) async {
