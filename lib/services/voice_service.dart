@@ -116,6 +116,12 @@ class VoiceService {
   /// من الوقت → توفير ~70% من الباقة و~40% من المعالج.
   static const bool _dtx = true;
 
+  /// RED — إعادة إرسال الحزم داخل التدفق نفسه.
+  /// ⚠️ افتراضياً `true` في LiveKit، ويزيد النطاق ~30%.
+  /// أوقفناه لأن الأولوية هنا هي توفير باقة المستخدم.
+  /// فعّله (true) إن لاحظت تقطّعاً على شبكات ضعيفة جداً.
+  static const bool _red = false;
+
   // ── الحالة ────────────────────────────────────────────────────
   static lk.Room? _room;
   static lk.EventsListener<lk.RoomEvent>? _events;
@@ -221,8 +227,8 @@ class VoiceService {
         ),
         defaultAudioPublishOptions: lk.AudioPublishOptions(
           dtx: _dtx,
+          red: _red,
           audioBitrate: _opusBitrate,
-          stopMicTrackOnMute: true,
           name: 'voice',
         ),
       ),
