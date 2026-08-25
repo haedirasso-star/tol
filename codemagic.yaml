@@ -1,0 +1,35 @@
+workflows:
+  android-release:
+    name: TOTV+ Android Release Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      groups:
+        - keystore_credentials
+      flutter: stable
+      java: 17
+    scripts:
+      - name: Set up Keystore
+        script: |
+          echo $KEYSTORE_BASE64 | base64 --decode > android/app/totv_keystore.jks
+          cat > android/key.properties << 'EOF'
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=totv_keystore.jks
+          EOF
+      - name: Get dependencies
+        script: flutter pub get
+      - name: Build APK
+        script: |
+          flutter build apk --release \
+            --split-per-abi \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols \
+            --tree-shake-icons
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+    publishing:
+      email:
+        recipients:
+          - haedirasso@gmail.com
