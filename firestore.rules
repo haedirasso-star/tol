@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() { return request.auth != null; }
+
+    // ═══════════════════════════════════════════════════════════
+    //  voice_rooms — القراءة للمسجّلين، الكتابة من Cloud Functions فقط
+    //  (Admin SDK يتجاوز القواعد، فالدوال تكتب بحرية)
+    //
+    //  ⚠️ allow write: if false مقصود تماماً. لو سمحنا للعميل
+    //     بالكتابة، لأضاف أي مستخدم نفسه إلى speakers وتحدّث.
+    // ═══════════════════════════════════════════════════════════
+    match /voice_rooms/{roomId} {
+      allow read:  if isAuth();
+      allow write: if false;
+    }
+
+    // سجل الجلسات — للتحليلات، من الخادم فقط
+    match /voice_sessions/{id} {
+      allow read:  if false;
+      allow write: if false;
+    }
+  }
+}

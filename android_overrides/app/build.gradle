@@ -1,0 +1,67 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    // ★ يقرأ app/google-services.json ويولّد إعدادات Firebase
+    id "com.google.gms.google-services"
+}
+
+android {
+    // ⚠️ يجب أن يطابق package_name في google-services.json تماماً،
+    //    وإلا فشل البناء برسالة "No matching client found".
+    namespace = "com.totv.plus"
+    compileSdk = 35
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // بعض تبعيات WebRTC تحتاج واجهات Java 8+ على أندرويد قديم
+        coreLibraryDesugaringEnabled = true
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    defaultConfig {
+        applicationId = "com.totv.plus"
+
+        // ★★ WebRTC لا يعمل مطلقاً تحت 23 — لا تخفّضه
+        minSdk = 23
+        targetSdk = 34
+
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            // للتجربة والبناء في CI. استبدله بمفتاح التوقيع الحقيقي
+            // قبل النشر على Play Store.
+            signingConfig = signingConfigs.debug
+
+            // مُطفأ عمداً في البناء الأول: تقليص الكود مع WebRTC
+            // يحتاج ضبطاً دقيقاً، وفشله يظهر كانهيار وقت التشغيل
+            // لا كخطأ بناء. فعّله بعد أن يعمل كل شيء.
+            minifyEnabled = false
+            shrinkResources = false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"),
+                          "proguard-rules.pro"
+        }
+    }
+
+    packagingOptions {
+        // يمنع تعارض المكتبات الأصلية بين flutter_webrtc وغيرها
+        pickFirst "lib/**/libc++_shared.so"
+        pickFirst "lib/**/libjingle_peerconnection_so.so"
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.2"
+}

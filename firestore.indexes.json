@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "voice_rooms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "closed", "order": "ASCENDING"},
+        {"fieldPath": "live", "order": "DESCENDING"},
+        {"fieldPath": "count", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "voice_rooms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "hostUid", "order": "ASCENDING"},
+        {"fieldPath": "closed", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
