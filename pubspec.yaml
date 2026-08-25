@@ -45,7 +45,7 @@ dependencies:
   shimmer: ^3.0.0
 
   # Device
-  device_info_plus: ^10.1.2
+  device_info_plus: ^11.3.0
   package_info_plus: ^8.1.2
   url_launcher: ^6.3.1
 
@@ -53,7 +53,7 @@ dependencies:
   audioplayers: ^6.1.0
 
   # ★ الغرف الصوتية (LiveKit SFU)
-  livekit_client: ^2.4.0
+  livekit_client: '>=2.4.0 <2.6.0'
   permission_handler: ^11.3.1
   cloud_functions: ^5.1.3
 
