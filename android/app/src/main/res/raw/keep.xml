@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- يمنع حذف أصوات الإشعارات عند تقليص الموارد (تُستدعى بالاسم فقط) -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/whistle,@raw/cash,@raw/notification" />
