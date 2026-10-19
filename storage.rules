@@ -1,0 +1,24 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth()  { return request.auth != null; }
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in ['admin@totv.com', 'haedirasso@gmail.com'];
+    }
+
+    // إيصالات الدفع: المستخدم يرفع تحت مجلده الخاص فقط (صور حتى 5MB)
+    match /receipts/{uid}/{file} {
+      allow read:  if isAdmin() || (isAuth() && request.auth.uid == uid);
+      allow write: if isAuth() && request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // أي شيء آخر: ممنوع
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

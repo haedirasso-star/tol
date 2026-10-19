@@ -1,0 +1,15 @@
+TOTV+ v2.2.0+4
+==============
+جديد:
+  lib/services/sports_feed.dart     (قراءة خلاصة المباريات + مطابقة القناة الناقلة)
+  lib/ui/pages/sports_hub.dart      (صفحة رياضة: المباريات + القنوات المباشرة)
+  sports_feed/                      (الخادم المجاني: GitHub Actions — ارفعه لمستودع مستقل، انظر README بداخله)
+معدّل:
+  lib/ui/pages/profile_gate.dart    («من يشاهد الآن؟» أسود/أبيض + مربع تلجرام + زر الدخول)
+  lib/ui/pages/splash_shell.dart    (شريط سفلي: الرئيسية/بحث/المزيد + أقسام علوية + زر الرجوع + إصلاح قائمة TV)
+  lib/ui/pages/home_pages.dart      (الأقسام العلوية فوق البانر)
+  lib/ui/pages/actor_login.dart     (اتجاه عربي صحيح للجمل المختلطة Google / TOTV+ / F1)
+  lib/services/notif_app.dart       (اشتراك topic matches + فتح «رياضة» من الإشعار)
+  lib/core/constants.dart           (sports_feed في remote_config)
+  lib/main.dart, pubspec.yaml       (font_awesome_flutter لشعار تلجرام)
+بعد الفك: flutter pub get

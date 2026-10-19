@@ -1,0 +1,19 @@
+TOTV+ v2.1.0+3 — الملفات المعدّلة/الجديدة
+==========================================
+جديد:
+  lib/ui/widgets/tmdb_hero_video_banner.dart   (TmdbTrailerService + TmdbHeroVideoBanner + HeroTrailerPlayer + زر الكتم)
+  assets/login/slide_1.jpg  slide_2.jpg  slide_3.jpg   (الشرائح الإعلانية)
+  assets/images/brand_t.png                            (شعار T شفاف)
+معدّل:
+  pubspec.yaml                       (youtube_player_iframe ^5.0.0 + الأصول + الإصدار)
+  lib/main.dart                      (import + part + navigatorObservers + إصلاحات v2)
+  lib/ui/pages/actor_login.dart      (واجهة الدخول الجديدة)
+  lib/ui/pages/home_pages.dart       (تشغيل التريلر في بانر الرئيسية)
+  lib/ui/pages/splash_shell.dart     (تتبّع التبويب لإيقاف التريلر)
+  lib/services/tmdb.dart             (إصلاح خطأ \$ الذي منع جلب التريلرات)
+  lib/core/constants.dart            (SelfHeal + إعادة المحاولة — من v2)
+  lib/services/activation.dart       (إعادة محاولة الاستعادة — من v2)
+  lib/ui/pages/profile_player.dart   (إصلاح المشغّل — من v2)
+
+بعد الفك:  flutter pub get  ثم  flutter run
+ملاحظة: ملف التوقيع totv_keystore.jks و key.properties غير مضمّنين — استخدم نسختك.
