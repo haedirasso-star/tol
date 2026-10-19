@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ad-services-config>
-    <attribution-reporting allowAllToAccess="true"/>
-    <topics allowAdTechProvidersToAccess="true" allowAllToAccess="false"/>
-    <custom-audiences allowAllToAccess="true"/>
-    <app-setid allowAllToAccess="true"/>
-</ad-services-config>
