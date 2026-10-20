@@ -1,0 +1,12 @@
+TOTV+ v2.6.0+8 — المشغّل الاحترافي الجديد (Pro Player)
+==================================================================
+جديد:
+  lib/ui/player/pro_player.dart   المشغّل الجديد بالكامل على محرك libmpv (media_kit)
+معدّل:
+  lib/ui/pages/profile_player.dart  المشغّل القديم صار LegacyPlayerPage (احتياط فقط)
+  lib/core/constants.dart           مفتاح player_engine (pro/legacy) من remote_control — فوري
+  lib/main.dart                     تهيئة المحرك + الاستيرادات
+  pubspec.yaml                      media_kit + media_kit_video + media_kit_libs_video
+                                    + screen_brightness_platform_interface + volume_controller
+بعد النسخ: flutter pub get
+تطبيق الإدارة: pages/app_control.dart ← مفتاح «المشغّل الاحترافي الجديد» (للطوارئ)
