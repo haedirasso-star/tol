@@ -131,7 +131,10 @@ jobs:
           fi
           mkdir -p out/Payload
           cp -R build/ios/iphoneos/Runner.app out/Payload/
-          cd out && zip -qry TOTV-iOS-unsigned.ipa Payload && rm -rf Payload
+          # ★ توقيع مؤقت لكل الأطر ⇐ يمنع خطأ Sideloadly: 0xe800801c (No code signature found)
+          bash ios/ci/fakesign.sh out/Payload/Runner.app 2>&1 | tee logs/fakesign.txt
+          # ditto يحافظ على الروابط الرمزية وصلاحيات التنفيذ داخل الأطر
+          cd out && ditto -c -k --norsrc --keepParent Payload TOTV-iOS-unsigned.ipa && rm -rf Payload
           ls -lh
 
       # السجلات الكاملة كملف قابل للتحميل — حتى لو تعذّر عرضها في الصفحة
