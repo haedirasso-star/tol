@@ -100,10 +100,22 @@ part 'ui/admin/admin_user_detail.dart';
 //  Firebase background message handler
 //  @pragma vm:entry-point — ضروري لمنع tree-shaking
 // ════════════════════════════════════════════════════════════════
+/// ★ iOS: إن كان appId في firebase_options.dart ليس لتطبيق iOS (مثل معرّف أندرويد)
+///   فإن مكتبة Firebase الأصلية ترمي NSException «Configuration fails» يُغلق التطبيق فوراً
+///   بعد شاشة الإقلاع — ولا يلتقطه try/catch في Dart. لذلك لا نستدعيها أصلاً في هذه الحالة.
+///   الإصلاح الحقيقي: GoogleService-Info.plist (انظر docs/IOS_BUILD_AR.md).
+bool get kFirebaseConfigValid {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return true;
+  final id = DefaultFirebaseOptions.ios.appId;
+  final p = id.split(':');
+  return p.length == 4 && p[0] == '1' && p[2] == 'ios' && p[3].isNotEmpty;
+}
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // رسالة «تحديث القناة» الصامتة لا تحتاج شيئاً والتطبيق مغلق — يُجلب عند فتحه
   if (message.data['type'] == 'live_sync') return;
+  if (!kFirebaseConfigValid) return;
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) { debugPrint('[bg_msg] $e'); }
@@ -187,17 +199,21 @@ Future<void> main() async {
 
   // ══ 7. Firebase ════════════════════════════════════════════════
   bool firebaseOk = false;
-  try {
-    // محاولة استخدام instance موجود أولاً (أسرع)
-    Firebase.app();
-    firebaseOk = true;
-  } catch (_) {
+  if (!kFirebaseConfigValid) {
+    debugPrint('[main] ⚠️ iOS: إعدادات Firebase ليست لتطبيق iOS — تخطّي التهيئة لتجنّب الإغلاق الفوري');
+  } else {
     try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(const Duration(seconds: 10));
+      // محاولة استخدام instance موجود أولاً (أسرع)
+      Firebase.app();
       firebaseOk = true;
-    } catch (e) { debugPrint('[main] Firebase (non-fatal): $e'); }
+    } catch (_) {
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ).timeout(const Duration(seconds: 10));
+        firebaseOk = true;
+      } catch (e) { debugPrint('[main] Firebase (non-fatal): $e'); }
+    }
   }
 
   // ══ كشف TV قبل بناء الواجهة (ليعمل تخطيط التلفاز من أول إطار) ══
@@ -466,11 +482,38 @@ class _AppState extends State<App> {
   }
 
   Widget _buildHome() {
+    if (!kFirebaseConfigValid) return const _IosFirebaseSetupPage();
     if (RC.needsUpdate)  return _UpdateGatePage();
     if (RC.locked)       return _LockPage(RC.lockMsg);
     if (RC.maintenance)  return _MaintenancePage(RC.maintMsg);
     return const Splash();
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  iOS بلا إعداد Firebase — رسالة واضحة بدل الإغلاق الفوري
+// ════════════════════════════════════════════════════════════════
+class _IosFirebaseSetupPage extends StatelessWidget {
+  const _IosFirebaseSetupPage();
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.black,
+    body: SafeArea(child: Center(child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Directionality(textDirection: TextDirection.rtl, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Image.asset('assets/images/intro_mark.png', width: 96, height: 96,
+            errorBuilder: (_, __, ___) => const SizedBox(height: 96)),
+        const SizedBox(height: 24),
+        const Text('نسخة الآيفون قيد الإعداد', textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 10),
+        const Text('لم تُربط هذه النسخة بخدمات الحساب (Firebase) بعد.\n'
+            'أضف GoogleService-Info.plist لتطبيق iOS ثم أعد البناء.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.6)),
+      ])),
+    ))),
+  );
 }
 
 // ════════════════════════════════════════════════════════════════
