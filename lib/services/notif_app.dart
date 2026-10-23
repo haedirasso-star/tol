@@ -86,9 +86,6 @@ class NotifService {
         }
         show(n.title ?? 'TOTV+', n.body ?? '');
       });
-      await m.subscribeToTopic('all_users');
-      // ★ إشعارات انطلاق المباريات (قابلة للإيقاف من «المزيد»)
-      if (await MatchNotifPref.get()) await m.subscribeToTopic('matches');
       // الضغط على إشعار مباراة يفتح قسم «رياضة»
       FirebaseMessaging.onMessageOpenedApp.listen((msg) {
         if (msg.data['type'] == 'match') ShellNav.go(3);
@@ -103,6 +100,16 @@ class NotifService {
           Future.delayed(const Duration(milliseconds: 2500), ChatInbox.open);
         }
       } catch (_) {}
+      // ★ iOS: الاشتراك في المواضيع وجلب الرمز يفشلان قبل وصول رمز APNs من Apple
+      //   (يتأخر ثوانٍ بعد الإقلاع). كان الفشل يُسقط بقية الكتلة كلها.
+      _inited = true;   // المستمعات سُجّلت — لا نكررها إن استُدعيت التهيئة مرة أخرى
+      if (!await _apnsReady()) {
+        debugPrint('[notif_app] APNs غير جاهز — سنعيد الاشتراك في الإقلاع القادم');
+        return;
+      }
+      try { await m.subscribeToTopic('all_users'); } catch (e) { debugPrint('[notif_app] all_users: $e'); }
+      // ★ إشعارات انطلاق المباريات (قابلة للإيقاف من «المزيد»)
+      try { if (await MatchNotifPref.get()) await m.subscribeToTopic('matches'); } catch (_) {}
       await bindUser();
       // المشرفون يشتركون في topic admins لتلقّي إشعار كل طلب جديد
       try {
@@ -127,9 +134,22 @@ class NotifService {
     } catch (e) { debugPrint('[notif_app] $e'); }
   }
 
+  /// iOS: ينتظر رمز APNs (حتى 15 ثانية). أندرويد: جاهز دائماً.
+  static Future<bool> _apnsReady() async {
+    if (!Plat.isIOS) return true;
+    for (int i = 0; i < 15; i++) {
+      try {
+        if (await FirebaseMessaging.instance.getAPNSToken() != null) return true;
+      } catch (_) {}
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    return false;
+  }
+
   /// قناة خاصة بكل مستخدم (u_<uid>) — لرسائل الإدارة والتذكيرات والجوائز
   static Future<void> bindUser() async {
     if (kIsWeb) return;
+    if (!await _apnsReady()) return;   // يُعاد لاحقاً (لا يُحفظ الموضوع إلا بعد نجاح الاشتراك)
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
       final p = await SPref.i;
@@ -144,6 +164,7 @@ class NotifService {
 
   static Future<String?> getToken() async {
     try {
+      if (!await _apnsReady()) return null;
       return await FirebaseMessaging.instance.getToken();
     } catch (_) {
       return null;
