@@ -87,13 +87,53 @@ jobs:
       # ══════════════════════════════════════════════════════════
       #  1) نسخة غير موقّعة — تعمل دائماً بلا أي أسرار
       # ══════════════════════════════════════════════════════════
+      # ── فحص أخطاء Dart أولاً (دقيقة واحدة) — يُظهر الملف والسطر بدقة ──
+      - name: Dart analyze (errors only)
+        run: |
+          mkdir -p logs
+          set +e
+          flutter analyze --no-fatal-infos --no-fatal-warnings > logs/analyze.txt 2>&1
+          code=$?
+          set -e
+          grep -E "^\s*error •" logs/analyze.txt > logs/analyze_errors.txt || true
+          {
+            echo "## Dart analyze"
+            if [ -s logs/analyze_errors.txt ]; then
+              echo "❌ أخطاء Dart — الملف والسطر:"; echo '```'; head -60 logs/analyze_errors.txt; echo '```'
+            else
+              echo "✅ لا توجد أخطاء Dart"
+            fi
+          } >> $GITHUB_STEP_SUMMARY
+          while IFS= read -r l; do echo "::error::$l"; done < <(head -30 logs/analyze_errors.txt)
+          exit $code
+
       - name: Build unsigned IPA
         run: |
-          flutter build ios --release --no-codesign ${{ steps.bn.outputs.args }}
+          mkdir -p logs
+          set -o pipefail
+          if ! flutter build ios --release --no-codesign -v ${{ steps.bn.outputs.args }} 2>&1 | tee logs/build_ios.txt; then
+            {
+              echo "## ❌ فشل بناء iOS — أهم أسطر الخطأ"
+              echo '```'
+              grep -E "error:|Error:|Error \(|ERROR|failed|Failed|\.dart:[0-9]+:[0-9]+" logs/build_ios.txt | grep -v "^\[" | tail -60
+              echo '```'
+            } >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
           mkdir -p out/Payload
           cp -R build/ios/iphoneos/Runner.app out/Payload/
           cd out && zip -qry TOTV-iOS-unsigned.ipa Payload && rm -rf Payload
           ls -lh
+
+      # السجلات الكاملة كملف قابل للتحميل — حتى لو تعذّر عرضها في الصفحة
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TOTV-iOS-logs
+          path: logs/
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
