@@ -1,0 +1,193 @@
+name: TOTV+ Build — iOS (IPA)
+
+# ════════════════════════════════════════════════════════════════════
+#  نسخة الآيفون — تُشغَّل يدوياً من تبويب Actions (دقائق macOS مكلفة)
+#
+#  يُخرج دائماً:
+#    • TOTV-iOS-unsigned.ipa  ← غير موقّع، للتجربة عبر Sideloadly/AltStore
+#                               بحساب Apple مجاني (يعمل 7 أيام) أو بشهادة خاصة
+#  ويُخرج إن أضفت أسرار التوقيع (انظر docs/IOS_BUILD_AR.md):
+#    • TOTV-iOS.ipa           ← موقّع (app-store / ad-hoc / development)
+#    • ويرفعه إلى TestFlight تلقائياً إن اخترت ذلك وأضفت مفتاح App Store Connect
+# ════════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+    inputs:
+      export_method:
+        description: 'نوع التوقيع: app-store (المتجر/TestFlight) · ad-hoc (أجهزة محددة) · development'
+        type: choice
+        options: [app-store, ad-hoc, development]
+        default: app-store
+      upload_testflight:
+        description: 'رفع إلى TestFlight بعد البناء (app-store فقط)'
+        type: boolean
+        default: false
+      build_number:
+        description: 'رقم البناء (اتركه فارغاً لاستخدام رقم pubspec) — يجب أن يزيد مع كل رفع للمتجر'
+        required: false
+        default: ''
+  push:
+    tags: [ 'ios-v*' ]
+
+jobs:
+  ios:
+    name: Build iOS
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      HAS_SIGNING: ${{ secrets.IOS_DIST_CERT_P12_BASE64 != '' && secrets.IOS_PROVISION_PROFILE_BASE64 != '' }}
+      HAS_FIREBASE: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 != '' }}
+      HAS_ASC_KEY: ${{ secrets.APPSTORE_API_KEY_ID != '' && secrets.APPSTORE_API_ISSUER_ID != '' && secrets.APPSTORE_API_PRIVATE_KEY != '' }}
+      EXPORT_METHOD: ${{ github.event.inputs.export_method || 'app-store' }}
+      BUILD_NUMBER: ${{ github.event.inputs.build_number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app 2>/dev/null || sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+
+      - name: Setup Flutter 3.29.3
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+          channel: 'stable'
+          cache: true
+
+      # ── Firebase للآيفون (اختياري لكنه مطلوب لتسجيل الدخول بجوجل والإشعارات) ──
+      - name: Configure Firebase (GoogleService-Info.plist)
+        if: env.HAS_FIREBASE == 'true'
+        env:
+          GSI_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        run: |
+          echo "$GSI_B64" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          python3 ios/ci/configure_firebase.py ios/Runner/GoogleService-Info.plist
+
+      - name: Warn — Firebase not configured
+        if: env.HAS_FIREBASE != 'true'
+        run: echo "::warning::GOOGLE_SERVICE_INFO_PLIST_BASE64 غير موجود — تسجيل الدخول بجوجل والإشعارات لن تعمل في نسخة الآيفون"
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: CocoaPods install
+        run: |
+          cd ios
+          pod install --repo-update
+
+      - name: Build number args
+        id: bn
+        run: |
+          if [ -n "$BUILD_NUMBER" ]; then echo "args=--build-number=$BUILD_NUMBER" >> $GITHUB_OUTPUT; else echo "args=" >> $GITHUB_OUTPUT; fi
+
+      # ══════════════════════════════════════════════════════════
+      #  1) نسخة غير موقّعة — تعمل دائماً بلا أي أسرار
+      # ══════════════════════════════════════════════════════════
+      - name: Build unsigned IPA
+        run: |
+          flutter build ios --release --no-codesign ${{ steps.bn.outputs.args }}
+          mkdir -p out/Payload
+          cp -R build/ios/iphoneos/Runner.app out/Payload/
+          cd out && zip -qry TOTV-iOS-unsigned.ipa Payload && rm -rf Payload
+          ls -lh
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: TOTV-iOS-unsigned
+          path: out/TOTV-iOS-unsigned.ipa
+          retention-days: 30
+
+      # ══════════════════════════════════════════════════════════
+      #  2) نسخة موقّعة — للمتجر/TestFlight أو أجهزة محددة
+      # ══════════════════════════════════════════════════════════
+      - name: Install certificate & provisioning profile
+        if: env.HAS_SIGNING == 'true'
+        env:
+          CERT_B64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          CERT_PASS: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          PROFILE_B64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          KC=$RUNNER_TEMP/totv.keychain-db
+          KC_PASS=$(openssl rand -base64 24)
+          echo "$CERT_B64" | base64 --decode > $RUNNER_TEMP/cert.p12
+          echo "$PROFILE_B64" | base64 --decode > $RUNNER_TEMP/profile.mobileprovision
+
+          security create-keychain -p "$KC_PASS" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KC_PASS" "$KC"
+          security import $RUNNER_TEMP/cert.p12 -P "$CERT_PASS" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KC_PASS" "$KC" >/dev/null
+          security list-keychain -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+
+          security cms -D -i $RUNNER_TEMP/profile.mobileprovision > $RUNNER_TEMP/profile.plist
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' $RUNNER_TEMP/profile.plist)
+          NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' $RUNNER_TEMP/profile.plist)
+          TEAM=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' $RUNNER_TEMP/profile.plist)
+          APPID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' $RUNNER_TEMP/profile.plist)
+          echo "Profile: $NAME ($UUID) team=$TEAM app=$APPID"
+          case "$APPID" in *com.totv.plus) ;; *) echo "::error::ملف التوفير ليس لـ com.totv.plus ($APPID)"; exit 1;; esac
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $RUNNER_TEMP/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+
+          if [ "$EXPORT_METHOD" = "development" ]; then IDENTITY="Apple Development"; else IDENTITY="Apple Distribution"; fi
+          python3 ios/ci/set_signing.py "$TEAM" "$NAME" "$IDENTITY"
+
+          cat > $RUNNER_TEMP/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>$EXPORT_METHOD</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>$IDENTITY</string>
+            <key>provisioningProfiles</key>
+            <dict><key>com.totv.plus</key><string>$NAME</string></dict>
+            <key>uploadSymbols</key><true/>
+            <key>stripSwiftSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          plutil -lint $RUNNER_TEMP/ExportOptions.plist
+
+      - name: Build signed IPA
+        if: env.HAS_SIGNING == 'true'
+        run: |
+          flutter build ipa --release ${{ steps.bn.outputs.args }} \
+            --export-options-plist=$RUNNER_TEMP/ExportOptions.plist
+          IPA=$(ls build/ios/ipa/*.ipa | head -1)
+          cp "$IPA" out/TOTV-iOS.ipa
+          ls -lh out
+
+      - name: Upload signed IPA
+        if: env.HAS_SIGNING == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TOTV-iOS-${{ env.EXPORT_METHOD }}
+          path: out/TOTV-iOS.ipa
+          retention-days: 30
+
+      - name: Upload to TestFlight
+        if: env.HAS_SIGNING == 'true' && env.HAS_ASC_KEY == 'true' && github.event.inputs.upload_testflight == 'true' && env.EXPORT_METHOD == 'app-store'
+        env:
+          KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          ISSUER: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          KEY_P8: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8
+          xcrun altool --upload-app --type ios -f out/TOTV-iOS.ipa --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
+
+      - name: Signing not configured
+        if: env.HAS_SIGNING != 'true'
+        run: echo "::notice::لا توجد أسرار توقيع — تم بناء النسخة غير الموقّعة فقط. راجع docs/IOS_BUILD_AR.md لإضافة الشهادة."
+
+      - name: Cleanup keychain
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/totv.keychain-db 2>/dev/null || true
