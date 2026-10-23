@@ -37,16 +37,22 @@ if n != 1:
 opt.write_text(src2, encoding='utf-8')
 print('✓ firebase_options.dart (ios) — appId =', g['GOOGLE_APP_ID'])
 
-# ── 2) Info.plist: Google Sign-In ────────────────────────────────────
+# ── 2) Info.plist: روابط الرجوع (URL schemes) ─────────────────────────
+#   • REVERSED_CLIENT_ID ← تسجيل الدخول بجوجل + هاتف/فيسبوك عبر Firebase Auth
+#   • app-<GOOGLE_APP_ID> ← بديل Firebase Auth حين لا يوجد CLIENT_ID
+#   بدونهما: Firebase Auth يرمي NSException ويُغلق التطبيق عند الضغط على الدخول بالهاتف/فيسبوك
 ip = root / 'ios' / 'Runner' / 'Info.plist'
 info = plistlib.load(open(ip, 'rb'))
 cid, rev = g.get('CLIENT_ID', ''), g.get('REVERSED_CLIENT_ID', '')
+schemes = ['app-' + g['GOOGLE_APP_ID'].replace(':', '-')]
 if cid and rev:
     info['GIDClientID'] = cid
-    types = [t for t in info.get('CFBundleURLTypes', []) if rev not in t.get('CFBundleURLSchemes', [])]
-    types.append({'CFBundleTypeRole': 'Editor', 'CFBundleURLSchemes': [rev]})
-    info['CFBundleURLTypes'] = types
-    plistlib.dump(info, open(ip, 'wb'))
-    print('✓ Info.plist — GIDClientID + URL scheme', rev)
+    schemes.insert(0, rev)
 else:
     print('⚠️  لا يوجد CLIENT_ID في الملف — فعّل Google Sign-In في Firebase ثم أعد تحميل GoogleService-Info.plist')
+types = [t for t in info.get('CFBundleURLTypes', [])
+         if not set(t.get('CFBundleURLSchemes', [])) & set(schemes)]
+types.append({'CFBundleTypeRole': 'Editor', 'CFBundleURLSchemes': schemes})
+info['CFBundleURLTypes'] = types
+plistlib.dump(info, open(ip, 'wb'))
+print('✓ Info.plist — URL schemes:', ', '.join(schemes))
