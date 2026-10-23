@@ -61,8 +61,14 @@ class Downloads {
     try {
       final raw = (await SPref.i).getString(_k);
       if (raw != null && raw.isNotEmpty) {
+        final dir = await _dir();
         for (final e in (jsonDecode(raw) as List)) {
           final it = DlItem.fromJson(e as Map);
+          // ★ iOS يغيّر مسار مجلد التطبيق مع كل تحديث ⇐ نعيد بناء المسار من اسم الملف
+          if (it.path.isNotEmpty && !io.File(it.path).existsSync()) {
+            final name = it.path.split('/').last;
+            if (name.isNotEmpty && io.File('$dir/$name').existsSync()) it.path = '$dir/$name';
+          }
           // ما كان يعمل عند إغلاق التطبيق ⇐ متوقف (يُستأنف بضغطة)
           if (it.status == DlStatus.running || it.status == DlStatus.queued) it.status = DlStatus.paused;
           if (it.status == DlStatus.done && !io.File(it.path).existsSync()) continue;
